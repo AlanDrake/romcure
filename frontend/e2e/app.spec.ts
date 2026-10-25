@@ -468,3 +468,35 @@ test('a No-Intro DAT can be imported by hand, its system found from its name', a
   await page.getByRole('button', {name: 'Import DAT'}).click();
   await expect(page.locator('.msg.err')).toBeVisible();
 });
+
+// ---- "See the results" after Update DATs / Check CHD files
+
+test('a finished CHD check links to its results, right under the button', async ({page}) => {
+  // Update DATs goes online, so the CHD check (an empty disc folder still gets a row) stands in for both.
+  await page.goto('/');
+  const check = page.getByRole('button', {name: 'Check CHD files'});
+  test.skip((await check.getAttribute('title')) === 'chdman was not found', 'needs chdman (tools/fetch-tools.sh)');
+  const discs = mkdtempSync(join(tmpdir(), 'romcure-discs-'));
+  await page.getByLabel('System', {exact: true}).selectOption('psx');
+  await page.getByLabel('Folder path').fill(discs);
+  await page.getByRole('button', {name: 'Add folder', exact: true}).click();
+  const source = page.locator('ul.rows li', {hasText: discs});
+  await expect(source).toBeVisible();
+
+  await check.click();
+  await expect(page.locator('.msg.ok')).toContainText('CHD check finished.', {timeout: 30_000});
+  const results = page.locator('#chd-results');
+  await expect(results).toContainText('0 CHD files checked');
+  // Still on the Library tab: the link has to scroll, not just switch tabs.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(results).not.toBeInViewport();
+  await page.getByRole('button', {name: 'See the results'}).click();
+  await expect(results).toBeInViewport();
+  const importHeading = page.getByRole('heading', {name: 'Import a DAT file'});
+  expect((await results.boundingBox())!.y).toBeLessThan((await importHeading.boundingBox())!.y);
+  await page.screenshot({path: 'test-results/chd-results.png'});
+
+  // Put things back so later runs start clean.
+  await source.getByRole('button', {name: 'Remove'}).click();
+  await expect(source).toHaveCount(0);
+});

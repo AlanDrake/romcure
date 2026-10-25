@@ -164,6 +164,32 @@
       “Check CHD files” reads every CHD in your disc folders once so they can be matched to Redump; it takes about
       half a minute per disc.
     </p>
+    {#if app.datResults.length}
+      <ul class="rows" id="dat-results">
+        {#each app.datResults as r}
+          <li>
+            <div>
+              <strong>{r.SystemID}</strong>
+              {#if r.Source}<span class="tag">{r.Source}</span>{/if}
+              {#if r.Error}<span class="detail bad">{r.Error}</span>
+              {:else}<span class="detail">{r.Message}</span>{/if}
+            </div>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+    {#if app.chdResults.length}
+      <ul class="rows" id="chd-results">
+        {#each app.chdResults as r}
+          <li>
+            <div>
+              <strong>{r.SystemID}</strong><span class="detail">{r.Checked} CHD files checked</span>
+              {#each r.Errors ?? [] as e}<span class="detail bad">{e}</span>{/each}
+            </div>
+          </li>
+        {/each}
+      </ul>
+    {/if}
     <h3>Import a DAT file</h3>
     <p class="muted">
       libretro's No-Intro copies can trail No-Intro by a few weeks. For the newest data, or a parent/clone DAT
@@ -180,31 +206,5 @@
       <button onclick={browseDAT}>Browse…</button>
       <button disabled={!!app.job || !datPath.trim()} onclick={importDAT}>Import DAT</button>
     </div>
-    {#if app.datResults.length}
-      <ul class="rows">
-        {#each app.datResults as r}
-          <li>
-            <div>
-              <strong>{r.SystemID}</strong>
-              {#if r.Source}<span class="tag">{r.Source}</span>{/if}
-              {#if r.Error}<span class="detail bad">{r.Error}</span>
-              {:else}<span class="detail">{r.Message}</span>{/if}
-            </div>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-    {#if app.chdResults.length}
-      <ul class="rows">
-        {#each app.chdResults as r}
-          <li>
-            <div>
-              <strong>{r.SystemID}</strong><span class="detail">{r.Checked} CHD files checked</span>
-              {#each r.Errors ?? [] as e}<span class="detail bad">{e}</span>{/each}
-            </div>
-          </li>
-        {/each}
-      </ul>
-    {/if}
   </section>
 {/if}

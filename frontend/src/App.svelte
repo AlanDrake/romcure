@@ -54,7 +54,11 @@
       } else if (d.Kind === 'sync') ok('Sync finished.', {label: 'See the report', tab: 'library'});
       else if (d.Kind === 'apply' && problems) ok(`Outputs updated with ${problems} ${problems === 1 ? 'problem' : 'problems'}.`, seeOutputs, true);
       else if (d.Kind === 'apply') ok('Outputs are up to date.');
-      else ok(what + ' finished. Run Sync to apply the results to your library.', {label: 'See the results', tab: 'library'});
+      else if (d.Kind === 'dats' || d.Kind === 'chd') {
+        // The link scrolls to the list under the button that started the job (none if it came back empty).
+        const [list, anchor] = d.Kind === 'dats' ? [app.datResults, 'dat-results'] : [app.chdResults, 'chd-results'];
+        ok(what + ' finished. Run Sync to apply the results to your library.', list.length ? {label: 'See the results', tab: 'library', anchor} : null);
+      } else ok(what + ' finished.');
       refresh();
     });
     return () => {
