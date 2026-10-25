@@ -104,12 +104,65 @@ func TestAlignTakesTheStatedDiscCountAsComplete(t *testing.T) {
 		[]rules.Candidate{cand("eu2", "Europe", 0), cand("us2", "USA", 0)},
 		[]rules.Candidate{cand("eu3", "Europe", 0)})
 	alignReleases(set, usaFirst)
-	// Disc 3 only exists in the European release: it keeps its pick and says so.
-	if got := picks(set); got != "us1,us2,eu3" {
-		t.Errorf("picks = %s, want us1,us2,eu3", got)
+	// Disc 3 only exists in the European release: it is left out, never mixed in.
+	if got := picks(set); got != "us1,us2," {
+		t.Errorf("picks = %s, want us1,us2 and no disc 3", got)
 	}
-	if !strings.Contains(set[2].reason, "has no disc 3") {
+	if !strings.Contains(set[2].reason, "Left out") || !strings.Contains(set[2].reason, "another region is never used") {
 		t.Errorf("disc 3 reason = %q", set[2].reason)
+	}
+}
+
+func TestAlignNeverTakesAMissingDiscFromAnotherRegion(t *testing.T) {
+	// Only USA has disc 1, only Europe has disc 2: neither is complete and
+	// they can't be combined, so the preferred region is used and its gap stays.
+	names := map[string]string{"us1": "Saga (USA) (Disc 1)", "eu2": "Saga (Europe) (Disc 2)"}
+	set := discs(names, []rules.Candidate{cand("us1", "USA", 0)}, []rules.Candidate{cand("eu2", "Europe", 0)})
+	alignReleases(set, usaFirst)
+	if got := picks(set); got != "us1," {
+		t.Errorf("picks = %s, want us1 and no disc 2", got)
+	}
+	if !strings.Contains(set[0].reason, "no release of any region has every disc") {
+		t.Errorf("disc 1 reason = %q", set[0].reason)
+	}
+}
+
+func TestAlignFillsAGapFromAnotherReleaseOfTheSameRegion(t *testing.T) {
+	// A "(USA, Europe)" disc can complete a USA release; a Japanese one can't.
+	names := map[string]string{
+		"us1": "Saga (USA) (Disc 1)", "use2": "Saga (USA, Europe) (Disc 2)", "jp2": "Saga (Japan) (Disc 2)",
+	}
+	set := discs(names, []rules.Candidate{cand("us1", "USA", 0)},
+		[]rules.Candidate{cand("jp2", "Japan", 0), cand("use2", "USA, Europe", 0)})
+	alignReleases(set, rules.Preferences{RegionPriority: []string{"USA", "Japan", "Europe"}})
+	if got := picks(set); got != "us1,use2" {
+		t.Errorf("picks = %s, want us1,use2", got)
+	}
+	if !strings.Contains(set[1].reason, "another release of the same region") {
+		t.Errorf("disc 2 reason = %q", set[1].reason)
+	}
+
+	// TOSEC names usually give no region: another crack of the game can fill in.
+	names = map[string]string{"a-alpha": "Quest (1988)(Pub)(Side A)[cr Alpha]", "b-beta": "Quest (1988)(Pub)(Side B)[cr Beta]",
+		"a-beta": "Quest (1988)(Pub)(Side A)[cr Beta]"}
+	set = discs(names, []rules.Candidate{cand("a-alpha", "", 2), cand("a-beta", "", 2)}, []rules.Candidate{cand("b-beta", "", 2)})
+	alignReleases(set, usaFirst)
+	if got := picks(set); got != "a-beta,b-beta" {
+		t.Errorf("TOSEC picks = %s, want Beta's complete release", got)
+	}
+}
+
+func TestSameRegion(t *testing.T) {
+	for _, c := range []struct {
+		a, b string
+		want bool
+	}{
+		{"USA", "USA", true}, {"USA", "Europe", false}, {"USA, Europe", "Europe", true},
+		{"World", "Japan", true}, {"", "Japan", true}, {"Japan", "Japan, Korea", true}, {"Japan", "Korea", false},
+	} {
+		if got := sameRegion(c.a, c.b); got != c.want {
+			t.Errorf("sameRegion(%q, %q) = %v", c.a, c.b, got)
+		}
 	}
 }
 
@@ -202,5 +255,38 @@ func TestSyncChoosesBothSidesFromOneRelease(t *testing.T) {
 	}
 	if len(cracker) != 1 {
 		t.Errorf("sides come from %v, want one cracker", cracker)
+	}
+}
+
+// Through a real sync: a disc found only in another region is left out, and
+// its game still shows with the reason.
+func TestSyncLeavesOutADiscOfAnotherRegion(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "Saga of Stars (USA) (Disc 1).iso"), "usa-1")
+	writeFile(t, filepath.Join(root, "Saga of Stars (Europe) (Disc 2).iso"), "eur-2")
+	db := openTestDB(t)
+	if err := scan.New(db).Scan(context.Background(), root, nil); err != nil {
+		t.Fatal(err)
+	}
+	p, _ := rules.PresetByID("usa")
+	report, err := Sync(db, root, "psx", p.Prefs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sel, err := db.SelectedGames("psx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(sel) != 1 || !strings.Contains(sel[0].UltimateSourceRef, "(USA) (Disc 1)") {
+		t.Fatalf("selected %+v, want only the USA disc 1", sel)
+	}
+	left := false
+	for _, e := range report.Excluded {
+		if strings.Contains(e.Reason, "Left out") && strings.Contains(e.Title, "Disc 2") {
+			left = true
+		}
+	}
+	if !left {
+		t.Errorf("no left-out disc 2 in the report: %+v", report.Excluded)
 	}
 }

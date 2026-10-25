@@ -411,7 +411,7 @@ func (a *App) setOverrides(systemID, label string, groups map[int64]string) (Cha
 // SetVersion makes gameKey (one of the versions listed in Game) the version
 // used on every output. For a multi-disc game, each other disc takes the
 // version from the same release (else the same region, language and
-// revision), or keeps its own pick when it has none.
+// revision), or goes back to the automatic choice, which never mixes regions.
 func (a *App) SetVersion(rowKey, gameKey string) (Change, error) {
 	c, err := a.catalog()
 	if err != nil {
@@ -456,6 +456,12 @@ func (a *App) SetVersion(rowKey, gameKey string) (Change, error) {
 				picks[g.ID] = v.GameKey
 				break
 			}
+		}
+		if _, done := picks[g.ID]; !done {
+			// No version of this disc matches: it goes back to the automatic
+			// choice, which follows the chosen disc's release and never takes
+			// a disc from another region.
+			picks[g.ID] = ""
 		}
 	}
 	return a.setOverrides(r.SystemID, "Changed the version of "+r.Name+".", picks)

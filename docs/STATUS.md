@@ -90,12 +90,14 @@ push only when needed (CLAUDE.md).
     public release (spec §7).
 12. **Wails template task `build:server` is broken** (it builds `.`). Use the
     command in CLAUDE.md.
-13. **Multi-disc games with no complete release** still mix: when no release
-    in the collection has every disc, the missing disc comes from another
-    release (23 of 432 C64 games in the owner's set). For Redump names that
-    means a different region, and the output then splits the game into two
-    `.m3u` sets. Disc counts are only known from "of N" tags, so a 2-disc USA
-    release loses to a 3-disc European one when Redump names don't say.
+13. **Multi-disc games with no complete release:** a missing disc comes from
+    another release only if its region is compatible (shared, "World", or not
+    stated); otherwise it is left out and the game is incomplete. Regions are
+    never mixed. When no region is stated (most TOSEC names) a gap can be
+    filled from another crack (81 C64 disks in the owner's set). Disc counts
+    are only known from "of N" tags, so a 2-disc USA release loses to a 3-disc
+    European one when Redump names don't say. A left-out disc's game has no
+    version shown for that disc on the Games screen.
 14. **Header names and hacks:** a hack keeps its base game's code. Files marked
     [h], [T+…], [tr …], (Hack) or (Translation) keep their own names. Unmarked
     hacks (a translation whose file name has no tag) are named and grouped as

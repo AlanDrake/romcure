@@ -275,12 +275,18 @@ func SyncRoots(db *store.DB, roots []string, systemID string, prefs rules.Prefer
 	for _, dec := range decided {
 		groupKey, groupID, candidates := dec.groupKey, dec.groupID, dec.candidates
 		selectedKey, reason, overrideApplied := dec.disc.selected, dec.disc.reason, dec.disc.override
+		// A disc left out (only found in another region) has no pick; the
+		// group keeps a name so it still shows, with its reason.
+		displayName := byGameKey[selectedKey].title
+		if selectedKey == "" {
+			displayName = byGameKey[candidates[0].GameKey].title
+		}
 
 		if _, err := db.UpsertGameGroup(store.GameGroupRecord{
 			SystemID:         systemID,
 			GroupKey:         groupKey,
 			GroupingSource:   string(groupSource[groupKey]),
-			DisplayName:      byGameKey[selectedKey].title,
+			DisplayName:      displayName,
 			IsManualOverride: overrideApplied,
 			SelectionReason:  reason,
 		}); err != nil {

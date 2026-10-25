@@ -551,13 +551,16 @@ export using in-app guidance alone.
       _(`library/release.go`: a disc's release is its DAT or file name without the disc
       tag, word labels ("(Disk A)", "(Boot)", "(b)"), revision and dump-quality flags;
       cracks, trainers and hacks stay. A release your choice on any disc belongs to wins;
-      otherwise the best complete release by the usual rules (complete = 1 to the stated
-      "of N", else every disc the game has), else the one with most discs. A disc the
-      chosen release lacks keeps its own pick and says so. "Use this version" on the
-      Games screen takes the other discs from the same release. On a copy of the owner's
-      database: C64 games whose disks mixed releases went from 40 of 432 to 23, and all 23
-      are games where no release in the collection has every disk; Atari ST 0 of 83 and
-      PS1 0 of 11 before and after. Not seen in the owner's app yet.)_
+      otherwise the best by the usual rules among the complete releases (complete = 1 to
+      the stated "of N", else every disc the game has), then those another release of
+      the same region completes, then those with the most discs. **Regions are never
+      mixed** (owner's rule): a missing disc may come from another release of a
+      compatible region (shared region, "World", or none stated, as in most TOSEC
+      names), otherwise it is left out with a reason. "Use this version" on the Games
+      screen takes the other discs from the same release, else hands them back to the
+      automatic choice. On a copy of the owner's database: no game mixes regions on any
+      system (C64, Atari ST, PS1, GameCube), no disc is left out, and 81 C64 disks fill
+      a gap from another crack of the same game. Not seen in the owner's app yet.)_
 - [ ] Mega Drive serials: the header's "GM 00001009-00" against the DAT's several formats
       ("MK-1079", "T-48073-00", "00054503-00")
 - [ ] PC Engine's low match rate (132 of 664) explained: the folder is a GoodTools-era set

@@ -13,7 +13,8 @@ import (
 // A multi-disc game is chosen as one release (spec M7): every disc from the
 // same dump set and region, rather than each disc picking its own best
 // version, which could mix a USA disc 1 with a European disc 2, or one
-// cracker's side A with another's side B.
+// cracker's side A with another's side B. Regions are never mixed (owner's
+// rule): a disc that only exists in another region is left out.
 
 // dumpQualityFlags are TOSEC flags that describe one dump of a release, not
 // the release: [!] verified, [a2] alternate, [b] bad, [o] overdump. The sides
@@ -46,7 +47,34 @@ func ReleaseKey(name string) (key string, ok bool) {
 	return key, key != ""
 }
 
-// discChoice is one disc group of a sync, as alignReleases sees it.
+// sameRegion reports whether discs of two regions may be used together: their
+// regions share one ("USA, Europe" and "USA"), one of them is "World", or a
+// region is not known (most TOSEC names give none).
+func sameRegion(a, b string) bool {
+	as, bs := regionSet(a), regionSet(b)
+	if len(as) == 0 || len(bs) == 0 || as["world"] || bs["world"] {
+		return true
+	}
+	for r := range as {
+		if bs[r] {
+			return true
+		}
+	}
+	return false
+}
+
+func regionSet(s string) map[string]bool {
+	m := map[string]bool{}
+	for _, p := range strings.Split(s, ",") {
+		if p = strings.ToLower(strings.TrimSpace(p)); p != "" {
+			m[p] = true
+		}
+	}
+	return m
+}
+
+// discChoice is one disc group of a sync, as alignReleases sees it. A disc
+// left out (no disc of a compatible region) has selected "".
 type discChoice struct {
 	disc       int
 	candidates []rules.Candidate
@@ -59,24 +87,42 @@ type discChoice struct {
 // release is the discs one release has, by disc number. total is the number
 // of discs its names state ("Disk 1 of 2"), 0 when they don't say.
 type release struct {
-	key   string
-	discs map[int][]rules.Candidate
-	total int
+	key    string
+	region string
+	discs  map[int][]rules.Candidate
+	total  int
 }
 
-// complete reports whether the release has all its discs: 1 to the total its
-// names state, or else every disc the game has in any release (setLast).
-func (r release) complete(setLast int) bool {
-	last := setLast
+func (r *release) last(setLast int) int {
 	if r.total > 0 {
-		last = r.total
+		return r.total
 	}
-	for n := 1; n <= last; n++ {
-		if len(r.discs[n]) == 0 {
-			return false
+	return setLast
+}
+
+// has reports whether disc n can come from r or, when fill is set, from
+// another release of the same region.
+func (r *release) has(n int, fill []*release) bool {
+	if len(r.discs[n]) > 0 {
+		return true
+	}
+	for _, o := range fill {
+		if len(o.discs[n]) > 0 {
+			return true
 		}
 	}
-	return true
+	return false
+}
+
+// coverage counts the discs 1..last that r has, with fill's help.
+func (r *release) coverage(last int, fill []*release) int {
+	n := 0
+	for i := 1; i <= last; i++ {
+		if r.has(i, fill) {
+			n++
+		}
+	}
+	return n
 }
 
 var discOfTotal = regexp.MustCompile(`(?i)\((?:dis[ck]|tape)\s+\d+\s+of\s+(\d+)\)`)
@@ -95,13 +141,15 @@ func discTotal(name string) int {
 	return n
 }
 
-// alignReleases makes the discs of one multi-disc game come from one release.
-// The release is the one the user chose a disc from, if any; otherwise the
-// best by the usual rules among the complete releases (every disc from 1 to
-// the total its names state, else every disc the game has), or among those
-// with the most discs when none is complete. Each disc then takes that
-// release's best dump of it; a disc the release lacks, or one the user chose,
-// keeps its own pick. Picks and reasons are updated in place.
+// alignReleases makes the discs of one multi-disc game come from one release,
+// and never from two regions. The release is the one the user chose a disc
+// from, if any; otherwise the best by the usual rules among, in order: the
+// complete releases (every disc from 1 to the total their names state, else
+// every disc the game has); those a release of the same region completes;
+// those with the most discs. Each disc takes the release's best dump of it; a
+// disc the release lacks comes from another release of the same region (a
+// different crack, say), or is left out. A disc the user chose keeps its pick.
+// Picks and reasons are updated in place.
 func alignReleases(set []*discChoice, prefs rules.Preferences) {
 	if len(set) < 2 {
 		return
@@ -117,7 +165,7 @@ func alignReleases(set []*discChoice, prefs rules.Preferences) {
 			keyOf[c.GameKey] = k
 			r := byKey[k]
 			if r == nil {
-				r = &release{key: k, discs: map[int][]rules.Candidate{}}
+				r = &release{key: k, region: c.Region, discs: map[int][]rules.Candidate{}}
 				byKey[k] = r
 			}
 			r.discs[d.disc] = append(r.discs[d.disc], c)
@@ -129,11 +177,23 @@ func alignReleases(set []*discChoice, prefs rules.Preferences) {
 	if len(byKey) < 2 {
 		return // one release: the per-disc picks already agree
 	}
+	// fillers lists, per release, the other releases its missing discs may come from.
+	fillers := func(r *release) []*release {
+		var out []*release
+		for _, o := range byKey {
+			if o != r && sameRegion(r.region, o.region) {
+				out = append(out, o)
+			}
+		}
+		sort.Slice(out, func(i, j int) bool { return out[i].key < out[j].key })
+		return out
+	}
 
+	sort.Slice(set, func(i, j int) bool { return set[i].disc < set[j].disc })
+	setLast := set[len(set)-1].disc
 	var chosen *release
 	why := ""
 	// The user's choice on any disc decides, lowest disc first.
-	sort.Slice(set, func(i, j int) bool { return set[i].disc < set[j].disc })
 	for _, d := range set {
 		if d.override {
 			if r := byKey[keyOf[d.selected]]; r != nil {
@@ -143,57 +203,82 @@ func alignReleases(set []*discChoice, prefs rules.Preferences) {
 		}
 	}
 	if chosen == nil {
-		setLast := 0
-		for _, d := range set {
-			if d.disc > setLast {
-				setLast = d.disc
-			}
-		}
-		chosen, why = bestRelease(byKey, setLast, prefs)
+		chosen, why = bestRelease(byKey, setLast, fillers, prefs)
 	}
 
+	fill := fillers(chosen)
 	for _, d := range set {
 		if d.override {
 			continue
 		}
-		cands := chosen.discs[d.disc]
-		if len(cands) == 0 {
-			d.reason += fmt.Sprintf(" The release used for the other discs has no disc %d, so this one comes from another release.", d.disc)
+		if cands := chosen.discs[d.disc]; len(cands) > 0 {
+			d.selected, _ = rules.Select(cands, prefs)
+			d.reason = "Every disc from one release: " + why + "."
 			continue
 		}
-		pick, _ := rules.Select(cands, prefs)
-		if pick != d.selected {
-			d.selected = pick
+		var cands []rules.Candidate
+		for _, o := range fill {
+			cands = append(cands, o.discs[d.disc]...)
 		}
-		d.reason = "Every disc from one release: " + why + "."
+		if len(cands) > 0 {
+			d.selected, _ = rules.Select(cands, prefs)
+			d.reason = fmt.Sprintf("The release used for the other discs (%s) has no disc %d, so it comes from another release of the same region.", why, d.disc)
+			continue
+		}
+		d.selected = ""
+		d.reason = fmt.Sprintf("Left out: the release used for the other discs (%s) has no disc %d, and no other release of its region does. A disc from another region is never used.", why, d.disc)
 	}
 }
 
-// bestRelease picks among releases: complete ones first (or those with the
-// most discs when none is complete), then by the usual rules applied to each
-// release's best first disc.
-func bestRelease(byKey map[string]*release, setLast int, prefs rules.Preferences) (*release, string) {
-	var pool []*release
+// bestRelease picks among releases: complete ones first, then those that
+// releases of the same region complete, then those covering the most discs;
+// among those, by the usual rules applied to each release's best first disc.
+func bestRelease(byKey map[string]*release, setLast int, fillers func(*release) []*release, prefs rules.Preferences) (*release, string) {
+	var all []*release
 	for _, r := range byKey {
-		if r.complete(setLast) {
-			pool = append(pool, r)
-		}
+		all = append(all, r)
 	}
-	why := "the preferred complete release"
-	if len(pool) == 0 {
-		most := 0
-		for _, r := range byKey {
-			if n := len(r.discs); n > most {
-				most, pool = n, nil
-			}
-			if len(r.discs) == most {
+	// Stable input for Select, whose ties go to the first candidate.
+	sort.Slice(all, func(i, j int) bool { return all[i].key < all[j].key })
+
+	tiers := []struct {
+		why  string
+		keep func(r *release) bool
+	}{
+		{"the preferred complete release", func(r *release) bool {
+			return r.coverage(r.last(setLast), nil) == r.last(setLast)
+		}},
+		{"no release has every disc; this one does with another release of the same region", func(r *release) bool {
+			return r.coverage(r.last(setLast), fillers(r)) == r.last(setLast)
+		}},
+	}
+	var pool []*release
+	why := ""
+	for _, t := range tiers {
+		for _, r := range all {
+			if t.keep(r) {
 				pool = append(pool, r)
 			}
 		}
-		why = "no release has every disc; this one has the most"
+		if len(pool) > 0 {
+			why = t.why
+			break
+		}
 	}
-	// Stable input for Select, whose ties go to the first candidate.
-	sort.Slice(pool, func(i, j int) bool { return pool[i].key < pool[j].key })
+	if len(pool) == 0 {
+		most := 0
+		for _, r := range all {
+			n := r.coverage(setLast, fillers(r))
+			if n > most {
+				most, pool = n, nil
+			}
+			if n == most {
+				pool = append(pool, r)
+			}
+		}
+		why = "no release of any region has every disc; this one has the most"
+	}
+
 	reps := make([]rules.Candidate, 0, len(pool))
 	owner := map[string]*release{}
 	for _, r := range pool {
