@@ -585,7 +585,21 @@ names, such as "Nintendo - Game Boy Advance.lpl"), so in practice the playlists 
 With any option: a default core per system when a known one is installed (mGBA for GBA,
 FBNeo for arcade), and portable paths (`base_content_directory`) for SD-card exports that
 RetroArch on a handheld will read.
-- [ ] Find and read RetroArch's config on Windows, macOS, Linux and Flatpak
+- [ ] Find the RetroArch install in use. Candidates, each needing a real `retroarch.cfg`:
+      the folder of a running RetroArch (finds portable installs anywhere); the usual
+      places (Windows: `%APPDATA%`, default folders, Steam, installer registry entry,
+      shortcuts that point at `retroarch.exe`; macOS; Linux, Flatpak and Snap). When
+      several are found, the running one wins, then the most recently changed
+      `retroarch.cfg`; list them with one plain line each. Browse (exe, `.app` or
+      `retroarch.cfg`) is always there, and the choice is kept per output. The playlist
+      folder is resolved from `playlist_directory` (blank or "default" = `<config
+      folder>/playlists`, `:\` = the RetroArch folder), shown plainly, and checked again
+      at every Apply. A shortcut that starts RetroArch with `--config` is not covered.
+      _(Done: `discover.ParseRetroArchConfig` and `discover.RetroArchInstalls` read the
+      config from the usual places and rank by last change; unit-tested on synthetic
+      configs, vet-checked for Linux and macOS. Not done: running-process detection,
+      the registry and shortcut lookups, Browse, the setup and output UI. Not run
+      against a real install yet.)_
 - [ ] Playlist writer for the chosen option: no write when nothing changed; our entries
       removed when an output or system is removed
 - [ ] Default core per system when installed
