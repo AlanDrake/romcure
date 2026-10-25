@@ -106,7 +106,7 @@ func generateLayout(db *store.DB, systemID, folderName, dbName string, opts Opti
 			continue
 		}
 		report.Linked = append(report.Linked, LinkedGame{GameKey: g.GameKey, Title: g.DisplayName, Path: dstPath})
-		items = append(items, lplItem{Path: dstPath, Label: g.DisplayName, CorePath: "DETECT", CoreName: "DETECT", DBName: dbName + ".lpl"})
+		items = append(items, lplItem{Path: dstPath, Label: g.DisplayName, CorePath: "DETECT", CoreName: "DETECT", CRC32: "DETECT", DBName: dbName + ".lpl"})
 	}
 
 	for baseTitle, discs := range multiDiscSets {
@@ -296,6 +296,6 @@ func generateMultiDiscSet(db *store.DB, sysDir, discsDir, systemID, dbName, base
 		errs = append(errs, fmt.Sprintf("%s: record %s: %v", baseTitle, m3uPath, err))
 	}
 
-	item := &lplItem{Path: m3uPath, Label: baseTitle, CorePath: "DETECT", CoreName: "DETECT", DBName: dbName + ".lpl"}
+	item := &lplItem{Path: m3uPath, Label: baseTitle, CorePath: "DETECT", CoreName: "DETECT", CRC32: "DETECT", DBName: dbName + ".lpl"}
 	return item, linked, errs
 }

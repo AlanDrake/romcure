@@ -506,9 +506,21 @@ func (s *Service) LicenseText(name string) string {
 	return e.Text
 }
 
-// RetroArchInstalls lists the RetroArch configurations found on this computer,
+// RetroArchInstalls lists the RetroArch configurations found on this computer
+// and those already chosen for an output,
 // the one that is open (or used last) first.
-func (s *Service) RetroArchInstalls() []discover.RetroArchInstall { return discover.RetroArchInstalls() }
+func (s *Service) RetroArchInstalls() []discover.RetroArchInstall {
+	// A RetroArch chosen by hand for one output is offered for the others too.
+	var chosen []string
+	if profs, err := s.core.DB.Profiles(); err == nil {
+		for _, p := range profs {
+			if p.RetroArchConfig != "" {
+				chosen = append(chosen, filepath.Dir(p.RetroArchConfig))
+			}
+		}
+	}
+	return discover.RetroArchInstalls(chosen...)
+}
 
 // PickRetroArch opens a native chooser for RetroArch's retroarch.cfg or program
 // and returns that install; nil means cancelled.

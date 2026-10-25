@@ -605,10 +605,20 @@ RetroArch on a handheld will read.
       and a screenshot shows the form. The choice is stored but nothing reads it yet:
       the playlist writer below is not built. The process lookups have not been run
       against a real RetroArch, and nothing has been read from a real install.)_
-- [ ] Playlist writer for the chosen option: no write when nothing changed; our entries
+- [x] Playlist writer for the chosen option: no write when nothing changed; our entries
       removed when an output or system is removed
+      _(`profile/lplmerge.go`: entries inside the output's folder are ours and are replaced;
+      other entries and header fields (default core, sort mode) are kept as read; written
+      through a temp file; no playlist is created for no games. Removing an output with
+      "delete its links" takes its entries out of every playlist. Unit tests, and a
+      generator test that a second run leaves RetroArch's file identical. Removing a
+      system that still has a source is not handled: its entries stay until the output
+      is removed. Not run against a real RetroArch, so nobody has seen a game launch
+      from these playlists.)_
 - [ ] Default core per system when installed
-- [ ] Apply checks whether RetroArch is running
+- [x] Apply checks whether RetroArch is running
+      _(`discover.RetroArchOpen`: Apply and the removal refuse with a message while any
+      RetroArch process is open. A Flatpak or Snap RetroArch is not seen on Linux.)_
 
 **Exit:** the owner launches a game from a RomCure playlist in RetroArch on Windows.
 

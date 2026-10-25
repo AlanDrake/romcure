@@ -46,6 +46,10 @@ type Options struct {
 	// conversion stop (a running chdman/dolphin-tool is killed) and
 	// generation returns the context's error. Nil = not cancellable.
 	Context context.Context
+	// PlaylistDir, for a RetroArch output, is RetroArch's own playlist folder: the
+	// output's entries are merged into the playlists there (see mergePlaylist).
+	// Empty = only the playlist inside the output.
+	PlaylistDir string
 	// Parallelism is how many disc conversions may run at once (below 2 =
 	// one at a time). Each needs its own scratch space.
 	Parallelism int

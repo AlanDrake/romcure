@@ -169,3 +169,6 @@ func retroArchInstallsIn(dirs, running []string) []RetroArchInstall {
 	})
 	return out
 }
+
+// RetroArchOpen reports whether any RetroArch is running now.
+func RetroArchOpen() bool { return len(runningRetroArchDirs()) > 0 }

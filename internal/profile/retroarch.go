@@ -16,6 +16,7 @@ type lplItem struct {
 	Label    string `json:"label"`
 	CorePath string `json:"core_path"`
 	CoreName string `json:"core_name"`
+	CRC32    string `json:"crc32"`
 	DBName   string `json:"db_name"`
 }
 
@@ -71,6 +72,12 @@ func GenerateRetroArch(db *store.DB, systemID string, opts Options) (Report, err
 	playlistPath := filepath.Join(opts.OutputRoot, dbName+".lpl")
 	if err := os.WriteFile(playlistPath, data, 0o644); err != nil {
 		return report, fmt.Errorf("write playlist %s: %w", playlistPath, err)
+	}
+
+	if opts.PlaylistDir != "" {
+		if _, err := mergePlaylist(filepath.Join(opts.PlaylistDir, dbName+".lpl"), opts.OutputRoot, items); err != nil {
+			return report, err
+		}
 	}
 
 	return report, nil

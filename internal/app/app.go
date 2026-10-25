@@ -272,6 +272,17 @@ func (a *App) RemoveProfile(id int64, deleteLinks bool) error {
 			if _, err := profile.RemoveOutputs(a.DB, pid, p.OutputRoot); err != nil {
 				return fmt.Errorf("remove the output's files: %w", err)
 			}
+			// A RetroArch that is gone has no playlists left to clean; one that is open
+			// would rewrite them, so the user is asked to close it first.
+			if _, err := discover.ParseRetroArchConfig(p.RetroArchConfig); err == nil && p.Kind == "retroarch" {
+				dir, err := playlistDir(p)
+				if err != nil {
+					return err
+				}
+				if _, err := profile.RemoveFromPlaylists(dir, p.OutputRoot); err != nil {
+					return fmt.Errorf("remove the output's playlist entries: %w", err)
+				}
+			}
 		}
 		if err := a.DB.RemoveProfileData(pid); err != nil {
 			return err
@@ -419,6 +430,12 @@ func (a *App) Sync(ctx context.Context, progress func(Progress)) (SyncReport, er
 // database already says, so it is quick when little changed.
 func (a *App) generateOutputs(ctx context.Context, systems []string, profs []store.Profile, r *reporter, report *SyncReport) error {
 	for _, p := range profs {
+		playlists, perr := playlistDir(p)
+		if perr != nil {
+			// Nothing is generated for this output, so no half-updated playlists.
+			report.Profiles = append(report.Profiles, ProfileResult{Profile: p.Name, Errors: []string{perr.Error()}})
+			continue
+		}
 		// Every system with a source is generated; which games each output
 		// takes is decided by the user's ticks (Inclusion), not by a list here.
 		for _, sys := range systems {
@@ -426,7 +443,7 @@ func (a *App) generateOutputs(ctx context.Context, systems []string, profs []sto
 				return err
 			}
 			r.step(Progress{Stage: "generate", SystemID: sys, Profile: p.Name})
-			report.Profiles = append(report.Profiles, a.generate(ctx, p, sys, func(item string, pct float64) {
+			report.Profiles = append(report.Profiles, a.generate(ctx, p, sys, playlists, func(item string, pct float64) {
 				r.item(Progress{Stage: "convert", SystemID: sys, Profile: p.Name, Item: item, Percent: pct})
 			}, func(title string) {
 				r.item(Progress{Stage: "generate", SystemID: sys, Profile: p.Name, Item: title})
@@ -443,7 +460,7 @@ func (a *App) generateOutputs(ctx context.Context, systems []string, profs []sto
 	return nil
 }
 
-func (a *App) generate(ctx context.Context, p store.Profile, systemID string, onProgress func(item string, percent float64), onItem func(title string)) ProfileResult {
+func (a *App) generate(ctx context.Context, p store.Profile, systemID, playlists string, onProgress func(item string, percent float64), onItem func(title string)) ProfileResult {
 	res := ProfileResult{Profile: p.Name, SystemID: systemID}
 	opts, err := a.outputOptions(p, systemID)
 	if err != nil {
@@ -451,6 +468,7 @@ func (a *App) generate(ctx context.Context, p store.Profile, systemID string, on
 		return res
 	}
 
+	opts.PlaylistDir = playlists
 	opts.OnProgress = onProgress
 	opts.OnItem = onItem
 	opts.Context = ctx // a cancelled run stops conversions and extractions, not just between games
@@ -626,4 +644,22 @@ func (a *App) RepairOutput(id int64) (int, error) {
 		return 0, err
 	}
 	return plan.Repair(p.OutputRoot, findings)
+}
+
+// playlistDir is RetroArch's own playlist folder for a RetroArch output that
+// has a RetroArch chosen, "" for every other output. It refuses while RetroArch
+// is open, since RetroArch rewrites its playlists when it closes and would undo
+// ours.
+func playlistDir(p store.Profile) (string, error) {
+	if p.Kind != "retroarch" || p.RetroArchConfig == "" {
+		return "", nil
+	}
+	in, err := discover.ParseRetroArchConfig(p.RetroArchConfig)
+	if err != nil {
+		return "", fmt.Errorf("%s: RetroArch's config can't be read (%v). Choose RetroArch again on the Outputs tab.", p.Name, err)
+	}
+	if discover.RetroArchOpen() {
+		return "", fmt.Errorf("%s: RetroArch is open. Close it and press Apply again, or it would overwrite the playlists.", p.Name)
+	}
+	return in.Playlists, nil
 }
