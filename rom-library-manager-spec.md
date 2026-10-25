@@ -558,14 +558,14 @@ C64 game made of many files is one game, and every side of a multi-disk game is 
 playlist.
 _(Met on copies of the owner's database and DATs, with a scratch output, then confirmed
 working by the owner in their own app after a rebuild, Update DATs and Sync
-(2026-10-25).)_
+(2026-10-25). None of these games has been launched.)_
 
 ### M8 — RetroArch playlists that RetroArch reads
 The RetroArch output writes `<database name>.lpl` at its own root, and setup tells the
 user to point RetroArch's playlist folder at it. That swaps out every playlist the user
 already has (a RetroArch that has scanned games has its own playlists under these same
-names, such as "Nintendo - Game Boy Advance.lpl"), so in practice the playlists go unused. **Owner to
-choose:**
+names, such as "Nintendo - Game Boy Advance.lpl"), so in practice the playlists go unused.
+**The owner chose A (2026-10-25).** The options were:
 - **A. Merge into RetroArch's playlists folder (recommended).** Read `retroarch.cfg`
   (`playlist_directory`, `libretro_directory`; `:\` means the RetroArch folder) and
   update `<database name>.lpl` there: entries whose path is in the output are ours and

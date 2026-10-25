@@ -161,7 +161,9 @@ The owner's review of 2026-10-25 added milestones M7–M11 to the spec.
    Still open: choosing a multi-disc game as a whole release (bug 13), Mega
    Drive serials, and the PC Engine set.
 2. M11's first item: "Find folders" on the Library tab, reusing setup's discovery.
-3. M8: RetroArch playlists RetroArch reads. Waits for the owner to choose option A–D.
+3. M8: RetroArch playlists RetroArch reads. The owner chose option A (merge
+   into RetroArch's own playlists). Open: how to find the RetroArch install
+   in use.
 4. M9: one systems registry, then every system with a DAT source.
 5. M10: arcade (FBNeo, MAME). Builds on M9.
 6. A first release: run a packaged build on a clean machine, then push a v* tag. Then
