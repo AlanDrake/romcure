@@ -556,9 +556,9 @@ export using in-app guidance alone.
 **Exit:** on the owner's folders, the unmatched GBA dumps get their No-Intro names, a
 C64 game made of many files is one game, and every side of a multi-disk game is in one
 playlist.
-_(Met on copies of the owner's database and DATs, with a scratch output (2026-10-25).
-Not yet seen in the owner's own app, which needs a rebuild, Update DATs and Sync, and
-none of these games has been launched.)_
+_(Met on copies of the owner's database and DATs, with a scratch output, then confirmed
+working by the owner in their own app after a rebuild, Update DATs and Sync
+(2026-10-25).)_
 
 ### M8 — RetroArch playlists that RetroArch reads
 The RetroArch output writes `<database name>.lpl` at its own root, and setup tells the

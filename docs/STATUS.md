@@ -17,7 +17,8 @@ push only when needed (CLAUDE.md).
 - **App:** Go core (`internal/*`), orchestration in `internal/app`, a thin
   Wails service in `cmd/romcure/service.go`, Svelte UI with Library, Games,
   Outputs, Settings and Help tabs, first-run setup, and a job progress strip
-  with Cancel. 26 Playwright tests drive the server-mode build.
+  with Cancel. 27 Playwright tests drive the server-mode build (the CHD-check
+  one skips without chdman, so it never runs in CI's Linux job).
 - **Identification:** checksums against Redump (discs), TOSEC (computers) and
   No-Intro (cartridges, libretro-database's copies), all downloaded on request.
   A DAT imported by hand replaces the downloaded No-Intro DAT of its system.
@@ -45,9 +46,9 @@ push only when needed (CLAUDE.md).
   titles; nobody has looked into it. The user confirmed that a PS1 CHD and a PSP
   CHD boot in RetroArch, and that ES-DE loads a generated tree. The UAC
   relaunch was confirmed on Windows.
-- **M7 fixes, checked against copies of the user's data** (not in the user's
-  app yet: it needs a rebuild, then Update DATs, which re-imports the No-Intro
-  DATs with their serials, then Sync):
+- **M7 fixes, checked against copies of the user's data,** then confirmed
+  working by the owner in their own app after a rebuild, Update DATs and Sync
+  (2026-10-25):
   - GBA: went from 101 games (62 verified, 5 heuristic, 34 unidentified) to 97
     (62 verified, 33 named, 2 unidentified). The four stray archive members are
     gone, and 32 dumps are now named from their header.
