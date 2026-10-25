@@ -90,9 +90,12 @@ push only when needed (CLAUDE.md).
     public release (spec §7).
 12. **Wails template task `build:server` is broken** (it builds `.`). Use the
     command in CLAUDE.md.
-13. **Multi-disc games are chosen disc by disc,** so a set can mix dumps or
-    regions. For example, side A can come from one cracker's release and side B
-    from another's. Choosing a whole release is an M7 follow-up.
+13. **Multi-disc games with no complete release** still mix: when no release
+    in the collection has every disc, the missing disc comes from another
+    release (23 of 432 C64 games in the owner's set). For Redump names that
+    means a different region, and the output then splits the game into two
+    `.m3u` sets. Disc counts are only known from "of N" tags, so a 2-disc USA
+    release loses to a 3-disc European one when Redump names don't say.
 14. **Header names and hacks:** a hack keeps its base game's code. Files marked
     [h], [T+…], [tr …], (Hack) or (Translation) keep their own names. Unmarked
     hacks (a translation whose file name has no tag) are named and grouped as
@@ -158,8 +161,8 @@ push only when needed (CLAUDE.md).
 The owner's review of 2026-10-25 added milestones M7–M11 to the spec.
 
 1. M7's follow-ups. The fixes themselves are done and are described above.
-   Still open: choosing a multi-disc game as a whole release (bug 13), Mega
-   Drive serials, and the PC Engine set.
+   Done: a multi-disc game is chosen as a whole release (see bug 13 for what
+   remains). Still open: Mega Drive serials, and the PC Engine set.
 2. M11's first item: "Find folders" on the Library tab, reusing setup's discovery.
 3. M8: RetroArch playlists RetroArch reads. The owner chose option A (merge
    into RetroArch's own playlists). Done: the RetroArch in use is found

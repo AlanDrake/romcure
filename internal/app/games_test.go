@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"romcure/internal/catalog"
@@ -326,5 +327,74 @@ func TestOutputProblemsAndRepair(t *testing.T) {
 	}
 	if probs, _ := a.OutputProblems(p.ID); len(probs) != 0 {
 		t.Errorf("still problems: %+v", probs)
+	}
+}
+
+// Choosing one side's version on the Games screen takes the other side from
+// the same cracker's release, even though the two have no region to match by.
+func TestVersionChoiceTakesEveryDiscFromTheSameRelease(t *testing.T) {
+	a := newApp(t)
+	src := filepath.Join(t.TempDir(), "c64")
+	for name, body := range map[string]string{
+		"Quest of Ages (1988)(Publisher)(Side A)[cr Alpha].d64":     "alpha-a",
+		"Quest of Ages (1988)(Publisher)(Side B)[cr Alpha][a2].d64": "alpha-b",
+		"Quest of Ages (1988)(Publisher)(Side A)[cr Beta].d64":      "beta-a",
+		"Quest of Ages (1988)(Publisher)(Side B)[cr Beta].d64":      "beta-b",
+	} {
+		if err := os.MkdirAll(src, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(src, name), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := a.AddSource(src, "c64"); err != nil {
+		t.Fatal(err)
+	}
+	doSync(t, a)
+
+	key := rowKeyOf(t, a, "quest")
+	d, err := a.Game(key)
+	if err != nil || len(d.Groups) != 2 {
+		t.Fatalf("detail: %+v %v", d, err)
+	}
+	selectedCracker := func() map[bool]bool {
+		d, _ := a.Game(key)
+		got := map[bool]bool{}
+		for _, g := range d.Groups {
+			for _, v := range g.Variants {
+				if v.Selected {
+					got[strings.Contains(v.Title, "[cr Alpha]")] = true
+				}
+			}
+		}
+		return got
+	}
+	if got := selectedCracker(); len(got) != 1 {
+		t.Fatalf("automatic pick mixes crackers: %v", got)
+	}
+	// Choose whichever cracker's side A is not in use now.
+	var other string
+	for _, g := range d.Groups {
+		for _, v := range g.Variants {
+			if !v.Selected && strings.Contains(v.Title, "(Side A)") {
+				other = v.GameKey
+			}
+		}
+	}
+	if _, err := a.SetVersion(key, other); err != nil {
+		t.Fatal(err)
+	}
+	doSync(t, a)
+	if got := selectedCracker(); len(got) != 1 {
+		t.Errorf("after choosing side A, the sides mix crackers: %v", got)
+	}
+	d, _ = a.Game(key)
+	for _, g := range d.Groups {
+		for _, v := range g.Variants {
+			if v.Selected && strings.Contains(v.Title, "(Side A)") && v.GameKey != other {
+				t.Errorf("side A is %s, want the chosen %s", v.Title, other)
+			}
+		}
 	}
 }

@@ -181,6 +181,18 @@ func SyncRoots(db *store.DB, roots []string, systemID string, prefs rules.Prefer
 		groupSource[a.GroupKey] = a.Source
 	}
 
+	// First each group picks its version, then the discs of each multi-disc
+	// game are made to agree (alignReleases), then everything is written.
+	type groupDecision struct {
+		groupKey   string
+		groupID    int64
+		candidates []rules.Candidate
+		disc       *discChoice // nil for a game that isn't one disc of several
+		setKey     string
+	}
+	var decided []*groupDecision
+	sets := map[string][]*discChoice{}
+
 	for groupKey, gameKeys := range groupKeys {
 		candidates := make([]rules.Candidate, 0, len(gameKeys))
 		for _, gk := range gameKeys {
@@ -235,14 +247,34 @@ func SyncRoots(db *store.DB, roots []string, systemID string, prefs rules.Prefer
 			}
 		}
 
-		var selectedKey, reason string
-		overrideApplied := false
+		choice := &discChoice{candidates: candidates, names: map[string]string{}}
 		if hasOverride && containsGameKey(candidates, overrideKey) {
-			selectedKey, reason = overrideKey, "Your choice ("+overrideReason+")."
-			overrideApplied = true
+			choice.selected, choice.reason = overrideKey, "Your choice ("+overrideReason+")."
+			choice.override = true
 		} else {
-			selectedKey, reason = rules.Select(candidates, prefs)
+			choice.selected, choice.reason = rules.Select(candidates, prefs)
 		}
+		dec := &groupDecision{groupKey: groupKey, groupID: groupID, candidates: candidates}
+		if n, base, ok := ParseDiscTag(byGameKey[choice.selected].title); ok {
+			choice.disc = n
+			for _, c := range candidates {
+				choice.names[c.GameKey] = releaseName(byGameKey[c.GameKey].item)
+			}
+			dec.disc, dec.setKey = choice, rules.NormalizeTitle(SetTitle(base))
+			sets[dec.setKey] = append(sets[dec.setKey], choice)
+		} else {
+			dec.disc = choice
+		}
+		decided = append(decided, dec)
+	}
+
+	for _, set := range sets {
+		alignReleases(set, prefs)
+	}
+
+	for _, dec := range decided {
+		groupKey, groupID, candidates := dec.groupKey, dec.groupID, dec.candidates
+		selectedKey, reason, overrideApplied := dec.disc.selected, dec.disc.reason, dec.disc.override
 
 		if _, err := db.UpsertGameGroup(store.GameGroupRecord{
 			SystemID:         systemID,
@@ -363,4 +395,14 @@ func sheetClaimedTracks(items []match.Item) map[string]bool {
 		}
 	}
 	return claimed
+}
+
+// releaseName is the name a disc's release is read from (ReleaseKey): the DAT
+// game name when the DAT verified it, otherwise the file's own name, which
+// keeps the region and dump flags that the heuristic title drops.
+func releaseName(it match.Item) string {
+	if it.Result.Confidence == match.ConfidenceDATVerified {
+		return it.Result.Title
+	}
+	return originalFilenameStem(it)
 }

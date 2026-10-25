@@ -410,8 +410,8 @@ func (a *App) setOverrides(systemID, label string, groups map[int64]string) (Cha
 
 // SetVersion makes gameKey (one of the versions listed in Game) the version
 // used on every output. For a multi-disc game, each other disc takes the
-// version with the same region, language and revision, or keeps its own pick
-// when it has none.
+// version from the same release (else the same region, language and
+// revision), or keeps its own pick when it has none.
 func (a *App) SetVersion(rowKey, gameKey string) (Change, error) {
 	c, err := a.catalog()
 	if err != nil {
@@ -436,10 +436,23 @@ func (a *App) SetVersion(rowKey, gameKey string) (Change, error) {
 	if want == nil {
 		return Change{}, errors.New("that version does not belong to this game")
 	}
+	// Another disc takes the version from the same release (library.ReleaseKey:
+	// same name but for the disc tag, so the same region and cracker), else
+	// one with the same region, language and revision.
+	wantRelease, hasRelease := library.ReleaseKey(want.Title)
 	picks := map[int64]string{}
 	for _, g := range groups {
 		for _, v := range g.Variants {
-			if v.GameKey == gameKey || (v.Region == want.Region && v.Language == want.Language && v.Revision == want.Revision) {
+			if k, ok := library.ReleaseKey(v.Title); v.GameKey == gameKey || (hasRelease && ok && k == wantRelease) {
+				picks[g.ID] = v.GameKey
+				break
+			}
+		}
+		if _, done := picks[g.ID]; done {
+			continue
+		}
+		for _, v := range g.Variants {
+			if v.Region == want.Region && v.Language == want.Language && v.Revision == want.Revision {
 				picks[g.ID] = v.GameKey
 				break
 			}
