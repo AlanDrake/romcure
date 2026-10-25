@@ -596,10 +596,11 @@ RetroArch on a handheld will read.
       folder>/playlists`, `:\` = the RetroArch folder), shown plainly, and checked again
       at every Apply. A shortcut that starts RetroArch with `--config` is not covered.
       _(Done: `discover.ParseRetroArchConfig` and `discover.RetroArchInstalls` read the
-      config from the usual places and rank by last change; unit-tested on synthetic
-      configs, vet-checked for Linux and macOS. Not done: running-process detection,
-      the registry and shortcut lookups, Browse, the setup and output UI. Not run
-      against a real install yet.)_
+      config from the usual places and rank by last change, with a running RetroArch
+      first (process snapshot on Windows, `/proc` on Linux, `ps` on macOS); unit-tested
+      on synthetic configs, vet-checked for Linux and macOS. Not done: the registry and
+      shortcut lookups, Browse, the setup and output UI. The process lookups have not
+      been run against a real RetroArch, and nothing has been read from a real install.)_
 - [ ] Playlist writer for the chosen option: no write when nothing changed; our entries
       removed when an output or system is removed
 - [ ] Default core per system when installed

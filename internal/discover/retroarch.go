@@ -18,7 +18,7 @@ type RetroArchInstall struct {
 	Playlists string    // the playlist folder, with defaults and ":\" resolved
 	Cores     string    // the core folder, resolved the same way
 	Used      time.Time // when retroarch.cfg last changed (RetroArch saves it on exit)
-	Running   bool      // set by the caller when this install's RetroArch is open
+	Running   bool      // this install's RetroArch is open now
 }
 
 // ParseRetroArchConfig reads retroarch.cfg (key = "value" lines) and resolves
@@ -73,6 +73,13 @@ func resolveRetroArchDir(dir, v, stock string) string {
 	return filepath.FromSlash(v)
 }
 
+// isRetroArchExe reports whether a process image name is a RetroArch build
+// (retroarch.exe, retroarch_debug.exe).
+func isRetroArchExe(name string) bool {
+	name = strings.ToLower(name)
+	return strings.HasPrefix(name, "retroarch") && strings.HasSuffix(name, ".exe")
+}
+
 // retroArchDirs lists the folders where a RetroArch configuration usually
 // lives on this OS. The folder of a portable install can be anywhere; the
 // caller adds those from a running process or a Browse choice.
@@ -104,10 +111,17 @@ func retroArchDirs(home string) []string {
 // retroarch.cfg count: an empty folder is not an install.
 func RetroArchInstalls(extra ...string) []RetroArchInstall {
 	home, _ := os.UserHomeDir()
-	return retroArchInstallsIn(append(extra, retroArchDirs(home)...))
+	running := runningRetroArchDirs()
+	return retroArchInstallsIn(append(append(extra, running...), retroArchDirs(home)...), running)
 }
 
-func retroArchInstallsIn(dirs []string) []RetroArchInstall {
+// retroArchInstallsIn reads the configs in dirs. An install whose folder is in
+// running is marked Running and listed first.
+func retroArchInstallsIn(dirs, running []string) []RetroArchInstall {
+	open := map[string]bool{}
+	for _, d := range running {
+		open[strings.ToLower(filepath.Clean(d))] = true
+	}
 	var out []RetroArchInstall
 	seen := map[string]bool{}
 	for _, d := range dirs {
@@ -121,9 +135,15 @@ func retroArchInstallsIn(dirs []string) []RetroArchInstall {
 		}
 		seen[key] = true
 		if in, err := ParseRetroArchConfig(cfg); err == nil {
+			in.Running = open[strings.ToLower(filepath.Clean(d))]
 			out = append(out, in)
 		}
 	}
-	sort.SliceStable(out, func(i, j int) bool { return out[i].Used.After(out[j].Used) })
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].Running != out[j].Running {
+			return out[i].Running
+		}
+		return out[i].Used.After(out[j].Used)
+	})
 	return out
 }

@@ -54,8 +54,33 @@ func TestRetroArchInstallsNeedAConfigAndComeMostRecentFirst(t *testing.T) {
 	got := retroArchInstallsIn([]string{
 		filepath.Join(root, "old"), filepath.Join(root, "empty"), filepath.Join(root, "recent"),
 		filepath.Join(root, "recent"), "", filepath.Join(root, "nowhere"),
-	})
+	}, nil)
 	if len(got) != 2 || got[0].Config != recent || got[1].Config != old {
 		t.Fatalf("got %+v, want [recent old]", got)
+	}
+}
+
+func TestRunningRetroArchComesFirstEvenWhenOlder(t *testing.T) {
+	root := t.TempDir()
+	old := writeCfg(t, filepath.Join(root, "old"), "")
+	writeCfg(t, filepath.Join(root, "recent"), "")
+	if err := os.Chtimes(old, time.Now(), time.Now().Add(-48*time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	got := retroArchInstallsIn([]string{filepath.Join(root, "recent"), filepath.Join(root, "old")},
+		[]string{filepath.Join(root, "old")})
+	if len(got) != 2 || got[0].Config != old || !got[0].Running || got[1].Running {
+		t.Fatalf("got %+v, want the running old install first", got)
+	}
+}
+
+func TestIsRetroArchExe(t *testing.T) {
+	for name, want := range map[string]bool{
+		"retroarch.exe": true, "RetroArch.exe": true, "retroarch_debug.exe": true,
+		"retroarch.cfg": false, "notepad.exe": false,
+	} {
+		if got := isRetroArchExe(name); got != want {
+			t.Errorf("isRetroArchExe(%q) = %v", name, got)
+		}
 	}
 }
