@@ -168,8 +168,9 @@ The owner's review of 2026-10-25 added milestones M7–M11 to the spec.
    playlist writer is in: Apply merges into the playlist folder of the chosen
    RetroArch and refuses while RetroArch is open. The owner ran it on their real
    RetroArch: systems appeared, games were added and removed, their own playlists
-   kept working. A default core per system (option in Settings) is in and
-   unlaunched. Open: dropping a system's entries when only that system is
+   kept working. A default core per system (ranked: opens the files, BIOS
+   present, the user's own choice, then ES-DE's recommended order; option in
+   Settings) is in and unlaunched. Open: dropping a system's entries when only that system is
    removed.
 4. M9: one systems registry, then every system with a DAT source.
 5. M10: arcade (FBNeo, MAME). Builds on M9.

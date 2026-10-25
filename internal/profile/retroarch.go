@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 
 	"romcure/internal/store"
 )
@@ -75,11 +77,36 @@ func GenerateRetroArch(db *store.DB, systemID string, opts Options) (Report, err
 	}
 
 	if opts.PlaylistDir != "" {
-		if _, err := mergePlaylist(filepath.Join(opts.PlaylistDir, dbName+".lpl"), opts.OutputRoot, items,
-			defaultCore{opts.DefaultCorePath, opts.DefaultCoreName}); err != nil {
+		var core *defaultCore
+		reason := ""
+		if opts.ChooseCore != nil && len(items) > 0 {
+			if path, name, why, ok := opts.ChooseCore(contentTypes(items)); ok {
+				core, reason = &defaultCore{Path: path, Name: name}, why
+			}
+		}
+		if _, err := mergePlaylist(filepath.Join(opts.PlaylistDir, dbName+".lpl"), opts.OutputRoot, items, core); err != nil {
 			return report, err
+		}
+		if core != nil && core.Set {
+			report.Notes = append(report.Notes, fmt.Sprintf("RetroArch opens %s games with %s: %s.", dbName, core.Name, reason))
 		}
 	}
 
 	return report, nil
+}
+
+// contentTypes lists the file types a playlist's entries are, lower case and
+// without the dot ("chd", "m3u"), each once, in a stable order.
+func contentTypes(items []lplItem) []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, it := range items {
+		e := strings.ToLower(strings.TrimPrefix(filepath.Ext(it.Path), "."))
+		if e != "" && !seen[e] {
+			seen[e] = true
+			out = append(out, e)
+		}
+	}
+	sort.Strings(out)
+	return out
 }

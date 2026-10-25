@@ -616,14 +616,17 @@ RetroArch on a handheld will read.
       is removed. Not run against a real RetroArch, so nobody has seen a game launch
       from these playlists.)_
 - [x] Default core per system when installed
-      _(`discover/cores.go`: a table of preferred cores per system, the first one found in the
-      config's cores folder wins, named from its `.info` file. It is set as the playlist's
-      default core only where the playlist has none (empty or "DETECT"); a core the user
-      picked is never changed. A setting turns it off (Settings, "Set a default core on new
-      RetroArch playlists"). On the owner's real RetroArch the lookup picks mGBA, Gambatte,
-      Mesen, Snes9x, Genesis Plus GX, SwanStation, Mupen64Plus-Next and Beetle PCE FAST;
-      the owner has not yet launched a game from a playlist made this way. The table is
-      from memory of the libretro core names, so a wrong name just means no default.)_
+      _(`discover/cores.go`: the recommended order is ES-DE 3.x's per-system RetroArch core
+      list (its default first), read from a real install's es_systems.xml. Candidates are
+      those cores plus any installed core whose .info names the system's database
+      (experimental ones skipped). Ranked by: opens the playlist's file types (zip/7z
+      always pass), has its required BIOS in the system folder, is the core the user
+      already plays these games with (their playlists and history), then the recommended
+      order; a core that can't open the files is never chosen. The sync report says which
+      core and why. Set only where a playlist has no default core; the core RetroArch
+      records on one of our entries when a game is launched is kept on reruns. A setting
+      turns it off. Read-only run on the owner's RetroArch (182 cores): every system
+      tried got a core, mostly from their own history. No game launched from it yet.)_
 - [x] Apply checks whether RetroArch is running
       _(`discover.RetroArchOpen`: Apply and the removal refuse with a message while any
       RetroArch process is open. A Flatpak or Snap RetroArch is not seen on Linux.)_

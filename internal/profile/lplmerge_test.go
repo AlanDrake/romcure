@@ -56,11 +56,11 @@ func TestMergeKeepsTheUsersEntriesAndHeaderAndReplacesOurs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if changed, err := mergePlaylist(pl, root, oursIn(root, "Alpha", "Beta"), defaultCore{}); err != nil || !changed {
+	if changed, err := mergePlaylist(pl, root, oursIn(root, "Alpha", "Beta"), nil); err != nil || !changed {
 		t.Fatalf("first merge: changed=%v err=%v", changed, err)
 	}
 	// A later run drops Beta and adds Gamma: Beta must go, the user's entry must stay.
-	if changed, err := mergePlaylist(pl, root, oursIn(root, "Alpha", "Gamma"), defaultCore{}); err != nil || !changed {
+	if changed, err := mergePlaylist(pl, root, oursIn(root, "Alpha", "Gamma"), nil); err != nil || !changed {
 		t.Fatalf("second merge: changed=%v err=%v", changed, err)
 	}
 
@@ -86,14 +86,14 @@ func TestMergeWritesNothingWhenNothingChanged(t *testing.T) {
 	if err := os.WriteFile(pl, []byte(userPlaylist), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := mergePlaylist(pl, root, oursIn(root, "Alpha"), defaultCore{}); err != nil {
+	if _, err := mergePlaylist(pl, root, oursIn(root, "Alpha"), nil); err != nil {
 		t.Fatal(err)
 	}
 	old := time.Now().Add(-time.Hour)
 	if err := os.Chtimes(pl, old, old); err != nil {
 		t.Fatal(err)
 	}
-	if changed, err := mergePlaylist(pl, root, oursIn(root, "Alpha"), defaultCore{}); err != nil || changed {
+	if changed, err := mergePlaylist(pl, root, oursIn(root, "Alpha"), nil); err != nil || changed {
 		t.Fatalf("second run: changed=%v err=%v", changed, err)
 	}
 	if st, _ := os.Stat(pl); !st.ModTime().Equal(old.Truncate(time.Second)) && st.ModTime().After(old.Add(time.Minute)) {
@@ -104,13 +104,13 @@ func TestMergeWritesNothingWhenNothingChanged(t *testing.T) {
 func TestMergeCreatesAPlaylistOnlyWhenThereAreGames(t *testing.T) {
 	dir, root := t.TempDir(), filepath.Join(t.TempDir(), "RomCure")
 	pl := filepath.Join(dir, "playlists", "new.lpl")
-	if changed, err := mergePlaylist(pl, root, nil, defaultCore{}); err != nil || changed {
+	if changed, err := mergePlaylist(pl, root, nil, nil); err != nil || changed {
 		t.Fatalf("no games: changed=%v err=%v", changed, err)
 	}
 	if _, err := os.Stat(pl); err == nil {
 		t.Fatal("an empty playlist was created")
 	}
-	if changed, err := mergePlaylist(pl, root, oursIn(root, "Alpha"), defaultCore{}); err != nil || !changed {
+	if changed, err := mergePlaylist(pl, root, oursIn(root, "Alpha"), nil); err != nil || !changed {
 		t.Fatalf("with a game: changed=%v err=%v", changed, err)
 	}
 	head, items := readItems(t, pl)
@@ -125,7 +125,7 @@ func TestMergeRefusesAFileThatIsNotAPlaylist(t *testing.T) {
 	if err := os.WriteFile(pl, []byte("not json"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := mergePlaylist(pl, root, oursIn(root, "Alpha"), defaultCore{}); err == nil {
+	if _, err := mergePlaylist(pl, root, oursIn(root, "Alpha"), nil); err == nil {
 		t.Fatal("expected an error")
 	}
 	if data, _ := os.ReadFile(pl); string(data) != "not json" {
@@ -141,7 +141,7 @@ func TestRemoveFromPlaylistsTakesOnlyOurEntriesOut(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if _, err := mergePlaylist(mixed, root, oursIn(root, "Alpha"), defaultCore{}); err != nil {
+	if _, err := mergePlaylist(mixed, root, oursIn(root, "Alpha"), nil); err != nil {
 		t.Fatal(err)
 	}
 	before, _ := os.ReadFile(other)
@@ -214,7 +214,7 @@ func TestDefaultCoreIsSetOnlyWhereThePlaylistHasNone(t *testing.T) {
 
 	// A new playlist gets it.
 	fresh := filepath.Join(root, "fresh.lpl")
-	if _, err := mergePlaylist(fresh, out, oursIn(out, "Alpha"), core); err != nil {
+	if _, err := mergePlaylist(fresh, out, oursIn(out, "Alpha"), &core); err != nil {
 		t.Fatal(err)
 	}
 	head, _ := readItems(t, fresh)
@@ -226,13 +226,13 @@ func TestDefaultCoreIsSetOnlyWhereThePlaylistHasNone(t *testing.T) {
 	if err := os.WriteFile(detect, []byte(`{"version":"1.5","default_core_path":"DETECT","default_core_name":"DETECT","items":[]}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := mergePlaylist(detect, out, oursIn(out, "Alpha"), core); err != nil {
+	if _, err := mergePlaylist(detect, out, oursIn(out, "Alpha"), &core); err != nil {
 		t.Fatal(err)
 	}
 	if head, _ := readItems(t, detect); string(head["default_core_path"]) != `"/cores/mgba_libretro.dll"` {
 		t.Errorf("DETECT playlist: %s", head["default_core_path"])
 	}
-	if changed, err := mergePlaylist(detect, out, oursIn(out, "Alpha"), core); err != nil || changed {
+	if changed, err := mergePlaylist(detect, out, oursIn(out, "Alpha"), &core); err != nil || changed {
 		t.Errorf("second run: changed=%v err=%v", changed, err)
 	}
 	// A core the user picked is kept.
@@ -240,10 +240,74 @@ func TestDefaultCoreIsSetOnlyWhereThePlaylistHasNone(t *testing.T) {
 	if err := os.WriteFile(own, []byte(userPlaylist), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := mergePlaylist(own, out, oursIn(out, "Alpha"), defaultCore{Path: "/cores/gpsp_libretro.dll", Name: "gpSP"}); err != nil {
+	if _, err := mergePlaylist(own, out, oursIn(out, "Alpha"), &defaultCore{Path: "/cores/gpsp_libretro.dll", Name: "gpSP"}); err != nil {
 		t.Fatal(err)
 	}
 	if head, _ := readItems(t, own); string(head["default_core_path"]) != `"/cores/mgba_libretro.dll"` || string(head["default_core_name"]) != `"Nintendo - Game Boy Advance (mGBA)"` {
 		t.Errorf("the user's core: %s", head["default_core_path"])
+	}
+}
+
+func TestGenerateRetroArchAsksForACoreByContentTypeAndReportsWhy(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "Super Game (USA).nes"), "raw-rom-content")
+	db := openTestDB(t)
+	syncSystem(t, db, root, "nes")
+
+	var asked []string
+	opts := Options{OutputRoot: t.TempDir(), PlaylistDir: t.TempDir(),
+		ChooseCore: func(exts []string) (string, string, string, bool) {
+			asked = exts
+			return "/cores/mesen_libretro.dll", "Nintendo - NES / Famicom (Mesen)", "the recommended core", true
+		}}
+	rep, err := GenerateRetroArch(db, "nes", opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(asked, ",") != "nes" {
+		t.Errorf("asked with %v, want [nes]", asked)
+	}
+	if len(rep.Notes) != 1 || !strings.Contains(rep.Notes[0], "Mesen): the recommended core") {
+		t.Errorf("notes = %v", rep.Notes)
+	}
+	// The core is in the playlist now, so a second run says nothing.
+	if rep, _ := GenerateRetroArch(db, "nes", opts); len(rep.Notes) != 0 {
+		t.Errorf("second run notes = %v", rep.Notes)
+	}
+}
+
+func TestARerunKeepsTheCoreRetroArchRecordedOnOurEntry(t *testing.T) {
+	dir, root := t.TempDir(), filepath.Join(t.TempDir(), "RomCure")
+	pl := filepath.Join(dir, "x.lpl")
+	if _, err := mergePlaylist(pl, root, oursIn(root, "Alpha", "Beta"), nil); err != nil {
+		t.Fatal(err)
+	}
+	// The user launches Alpha with mGBA; RetroArch records it on the entry and
+	// saves the file in its own layout, with a field of its own.
+	head, items := readItems(t, pl)
+	items[0]["core_path"], items[0]["core_name"], items[0]["crc32"] = "/cores/mgba_libretro.dll", "mGBA", "1A2B3C4D|crc"
+	items[0]["subsystem_ident"] = ""
+	raw, _ := json.Marshal(items)
+	head["items"] = raw
+	saved, _ := json.Marshal(head) // compact, unlike ours
+	if err := os.WriteFile(pl, saved, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// The same games again: only the layout differs, so nothing is written.
+	if changed, err := mergePlaylist(pl, root, oursIn(root, "Alpha", "Beta"), nil); err != nil || changed {
+		t.Fatalf("same games: changed=%v err=%v", changed, err)
+	}
+	// Beta goes: Alpha keeps the core RetroArch recorded, and its extra field.
+	if changed, err := mergePlaylist(pl, root, oursIn(root, "Alpha"), nil); err != nil || !changed {
+		t.Fatalf("Beta removed: changed=%v err=%v", changed, err)
+	}
+	_, items = readItems(t, pl)
+	if len(items) != 1 || items[0]["core_path"] != "/cores/mgba_libretro.dll" || items[0]["core_name"] != "mGBA" ||
+		items[0]["crc32"] != "1A2B3C4D|crc" || items[0]["label"] != "Alpha" {
+		t.Errorf("after rerun: %v", items)
+	}
+	if _, ok := items[0]["subsystem_ident"]; !ok {
+		t.Error("RetroArch's own field was dropped")
 	}
 }

@@ -79,7 +79,7 @@
     <label class="check">
       <input type="checkbox" checked={!st.Settings.no_default_cores} onchange={(e) => (st.Settings.no_default_cores = !e.currentTarget.checked)} />
       Set a default core on new RetroArch playlists
-      <span class="muted">When RomCure creates a playlist for a system, it picks an installed core for it (for example mGBA for Game Boy Advance), so games open without asking. A core already set in a playlist is never changed.</span>
+      <span class="muted">When a playlist has no default core, RomCure picks an installed one so games open without asking: one that can open the files and has its BIOS, preferring the core you already play those games with, then the recommended one (for example mGBA for Game Boy Advance). The sync report says which and why. A core already set in a playlist, or on a game, is never changed.</span>
     </label>
     <label class="check">
       <input type="checkbox" bind:checked={st.Settings.allow_hardlink} />

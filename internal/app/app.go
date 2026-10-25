@@ -436,6 +436,11 @@ func (a *App) generateOutputs(ctx context.Context, systems []string, profs []sto
 			report.Profiles = append(report.Profiles, ProfileResult{Profile: p.Name, Errors: []string{perr.Error()}})
 			continue
 		}
+		// Read the cores and what the user already plays with once per output.
+		var cores *discover.CoreChooser
+		if ra != nil && !a.Settings.NoDefaultCores {
+			cores = ra.NewCoreChooser()
+		}
 		// Every system with a source is generated; which games each output
 		// takes is decided by the user's ticks (Inclusion), not by a list here.
 		for _, sys := range systems {
@@ -443,7 +448,7 @@ func (a *App) generateOutputs(ctx context.Context, systems []string, profs []sto
 				return err
 			}
 			r.step(Progress{Stage: "generate", SystemID: sys, Profile: p.Name})
-			report.Profiles = append(report.Profiles, a.generate(ctx, p, sys, ra, func(item string, pct float64) {
+			report.Profiles = append(report.Profiles, a.generate(ctx, p, sys, ra, cores, func(item string, pct float64) {
 				r.item(Progress{Stage: "convert", SystemID: sys, Profile: p.Name, Item: item, Percent: pct})
 			}, func(title string) {
 				r.item(Progress{Stage: "generate", SystemID: sys, Profile: p.Name, Item: title})
@@ -460,7 +465,7 @@ func (a *App) generateOutputs(ctx context.Context, systems []string, profs []sto
 	return nil
 }
 
-func (a *App) generate(ctx context.Context, p store.Profile, systemID string, ra *discover.RetroArchInstall, onProgress func(item string, percent float64), onItem func(title string)) ProfileResult {
+func (a *App) generate(ctx context.Context, p store.Profile, systemID string, ra *discover.RetroArchInstall, cores *discover.CoreChooser, onProgress func(item string, percent float64), onItem func(title string)) ProfileResult {
 	res := ProfileResult{Profile: p.Name, SystemID: systemID}
 	opts, err := a.outputOptions(p, systemID)
 	if err != nil {
@@ -470,8 +475,12 @@ func (a *App) generate(ctx context.Context, p store.Profile, systemID string, ra
 
 	if ra != nil {
 		opts.PlaylistDir = ra.Playlists
-		if core, ok := ra.SuggestedCore(systemID); ok && !a.Settings.NoDefaultCores {
-			opts.DefaultCorePath, opts.DefaultCoreName = core.Path, core.Name
+		if cores != nil {
+			dbName, _ := profile.LibretroDBName(systemID)
+			opts.ChooseCore = func(exts []string) (string, string, string, bool) {
+				c, ok := cores.Choose(systemID, dbName, exts)
+				return c.Path, c.Name, c.Reason, ok
+			}
 		}
 	}
 	opts.OnProgress = onProgress

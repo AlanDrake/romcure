@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 )
@@ -37,7 +38,7 @@ func inside(itemPath, folder string) bool {
 // of this output (those inside outputRoot) and leaving all others alone. It
 // returns whether the file changed: nothing is written when the result is the
 // same bytes, and a playlist that does not exist is not created for no items.
-func mergePlaylist(path, outputRoot string, ours []lplItem, core defaultCore) (bool, error) {
+func mergePlaylist(path, outputRoot string, ours []lplItem, core *defaultCore) (bool, error) {
 	old, err := os.ReadFile(path)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return false, err
@@ -59,7 +60,7 @@ func removeFromPlaylists(dir, outputRoot string) (int, error) {
 	files, _ := filepath.Glob(filepath.Join(dir, "*.lpl"))
 	changed := 0
 	for _, f := range files {
-		ok, err := mergePlaylist(f, outputRoot, nil, defaultCore{})
+		ok, err := mergePlaylist(f, outputRoot, nil, nil)
 		if err != nil {
 			return changed, err
 		}
@@ -72,9 +73,12 @@ func removeFromPlaylists(dir, outputRoot string) (int, error) {
 
 // mergePlaylistBytes is the pure part of mergePlaylist. A nil result means
 // there is nothing to write.
-func mergePlaylistBytes(old []byte, outputRoot string, ours []lplItem, core defaultCore) ([]byte, error) {
+func mergePlaylistBytes(old []byte, outputRoot string, ours []lplItem, core *defaultCore) ([]byte, error) {
 	header := map[string]json.RawMessage{}
 	var kept []json.RawMessage
+	// Our entries as RetroArch last saved them, by path: launching a game
+	// records the core it ran with there, which a rerun must not throw away.
+	previous := map[string]map[string]json.RawMessage{}
 	if len(bytes.TrimSpace(old)) > 0 {
 		if err := json.Unmarshal(old, &header); err != nil {
 			return nil, fmt.Errorf("not a RetroArch playlist: %w", err)
@@ -92,6 +96,10 @@ func mergePlaylistBytes(old []byte, outputRoot string, ours []lplItem, core defa
 			}
 			if json.Unmarshal(it, &p) == nil && inside(p.Path, outputRoot) {
 				removed++
+				var fields map[string]json.RawMessage
+				if json.Unmarshal(it, &fields) == nil {
+					previous[samePathKey(p.Path)] = fields
+				}
 				continue
 			}
 			kept = append(kept, it)
@@ -109,7 +117,7 @@ func mergePlaylistBytes(old []byte, outputRoot string, ours []lplItem, core defa
 		delete(header, "items")
 	}
 	for _, it := range ours {
-		raw, err := json.Marshal(it)
+		raw, err := mergeItem(it, previous[samePathKey(it.Path)])
 		if err != nil {
 			return nil, err
 		}
@@ -125,17 +133,70 @@ func mergePlaylistBytes(old []byte, outputRoot string, ours []lplItem, core defa
 	header["items"] = raw
 	core.fillIn(header)
 	// json.Marshal sorts a map's keys, so the output is the same every time.
-	return json.MarshalIndent(header, "", "  ")
+	next, err := json.MarshalIndent(header, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	if sameJSON(old, next) {
+		return nil, nil // only the layout differs (RetroArch saved it): leave it
+	}
+	return next, nil
 }
 
-// defaultCore is the core a new playlist should open its games with. The zero
-// value means none.
-type defaultCore struct{ Path, Name string }
+// carriedFields are what RetroArch fills in on an entry when a game is
+// launched: the core it ran with and the checksum it computed. Ours start as
+// "DETECT"; a value RetroArch recorded is kept.
+var carriedFields = []string{"core_path", "core_name", "crc32"}
+
+// mergeItem is our entry, on top of the one RetroArch saved for the same path
+// (if any): any field RetroArch added is kept, ours are updated, and the core
+// and checksum RetroArch recorded survive.
+func mergeItem(it lplItem, prev map[string]json.RawMessage) (json.RawMessage, error) {
+	raw, err := json.Marshal(it)
+	if err != nil || prev == nil {
+		return raw, err
+	}
+	var ourFields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &ourFields); err != nil {
+		return nil, err
+	}
+	out := map[string]json.RawMessage{}
+	for k, v := range prev {
+		out[k] = v
+	}
+	for k, v := range ourFields {
+		out[k] = v
+	}
+	for _, k := range carriedFields {
+		var was string
+		if json.Unmarshal(prev[k], &was) == nil && was != "" && was != "DETECT" {
+			out[k] = prev[k]
+		}
+	}
+	return json.Marshal(out)
+}
+
+// sameJSON reports whether two documents hold the same data, whatever their
+// layout or key order.
+func sameJSON(a, b []byte) bool {
+	var x, y any
+	if json.Unmarshal(a, &x) != nil || json.Unmarshal(b, &y) != nil {
+		return false
+	}
+	return reflect.DeepEqual(x, y)
+}
+
+// defaultCore is the core a new playlist should open its games with; nil or an
+// empty Path means none. Set records that the merge put it in the playlist.
+type defaultCore struct {
+	Path, Name string
+	Set        bool
+}
 
 // fillIn sets the playlist's default core, but only where it has none: a core
 // the user picked in RetroArch is never replaced.
-func (c defaultCore) fillIn(header map[string]json.RawMessage) {
-	if c.Path == "" {
+func (c *defaultCore) fillIn(header map[string]json.RawMessage) {
+	if c == nil || c.Path == "" {
 		return
 	}
 	var cur string
@@ -146,6 +207,7 @@ func (c defaultCore) fillIn(header map[string]json.RawMessage) {
 	path, _ := json.Marshal(c.Path)
 	name, _ := json.Marshal(c.Name)
 	header["default_core_path"], header["default_core_name"] = path, name
+	c.Set = true
 }
 
 // writeFileAtomic replaces path through a temporary file beside it, so a

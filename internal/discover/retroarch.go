@@ -19,6 +19,7 @@ type RetroArchInstall struct {
 	Playlists string    // the playlist folder, with defaults and ":\" resolved
 	Cores     string    // the core folder, resolved the same way
 	Info      string    // the folder of the cores' .info files, resolved the same way
+	System    string    // the BIOS (system) folder, resolved the same way
 	Used      time.Time // when retroarch.cfg last changed (RetroArch saves it on exit)
 	Running   bool      // this install's RetroArch is open now
 }
@@ -38,7 +39,7 @@ func ParseRetroArchConfig(path string) (RetroArchInstall, error) {
 	if st, err := f.Stat(); err == nil {
 		in.Used = st.ModTime()
 	}
-	var playlists, cores, info string
+	var playlists, cores, info, system string
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
 		k, v, ok := strings.Cut(sc.Text(), "=")
@@ -53,6 +54,8 @@ func ParseRetroArchConfig(path string) (RetroArchInstall, error) {
 			cores = v
 		case "libretro_info_path":
 			info = v
+		case "system_directory":
+			system = v
 		}
 	}
 	if err := sc.Err(); err != nil {
@@ -61,6 +64,7 @@ func ParseRetroArchConfig(path string) (RetroArchInstall, error) {
 	in.Playlists = resolveRetroArchDir(dir, playlists, "playlists")
 	in.Cores = resolveRetroArchDir(dir, cores, "cores")
 	in.Info = resolveRetroArchDir(dir, info, "info")
+	in.System = resolveRetroArchDir(dir, system, "system")
 	return in, nil
 }
 
