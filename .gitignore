@@ -1,0 +1,21 @@
+.task
+bin
+frontend/dist
+frontend/node_modules
+frontend/bindings
+cmd/romcure/*.syso
+build/linux/appimage/build
+build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
+
+# Claude Code harness-local state, not project content
+.claude/
+# Machine-specific notes (drives, sample folders, emulator installs): never committed
+CLAUDE.local.md
+# Local third-party tool binaries (see tools/README.md)
+tools/bin/*
+!tools/bin/.gitkeep
+
+# Playwright output
+frontend/test-results/
+frontend/playwright-report/
+/dist

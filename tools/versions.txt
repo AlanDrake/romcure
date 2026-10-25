@@ -1,0 +1,10 @@
+chdman  mame0289  windows-amd64  archive=mame0289b_x64.exe  url=https://github.com/mamedev/mame/releases/download/mame0289/mame0289b_x64.exe  archive_sha256=a1aa7912168c9d1b05e611906bc21b8b9be3935822aead36d12a1da363150b7d  binary_sha256=8a74468e3b0879698835b57c3b58e88e5a51e4de73bee6ef755c28530b5b040f
+7zip    26.05  windows-amd64  archive=7z2605-x64.exe  archive_sha256=fd99e86f57d8f429ef5ed045bf98315af962e2309b0f1ba87a147a44c71647d0
+7zip    26.05  windows-arm64  archive=7z2605-arm64.exe  archive_sha256=86d5790d5dd84cab4636c3bb7fab10d3ed7cd3e57e6119401bd2769e28165268
+7zip    26.05  linux-amd64  archive=7z2605-linux-x64.tar.xz  archive_sha256=22cf82fcc6eb7474f1d5bb4f02c0f8ebd573a718089d6833dc30f8350a3b232e
+7zip    26.05  linux-arm64  archive=7z2605-linux-arm64.tar.xz  archive_sha256=0b71f6cfc34669b3bf69f2347efd3429f77020665003a13b9cdc53b784270421
+7zip    26.05  darwin-amd64  archive=7z2605-mac.tar.xz  archive_sha256=12ef6830317743cfd3f0ab1724bde43fcc270d8b6d8564f8c12c2a2b7f993570
+7zip    26.05  darwin-arm64  archive=7z2605-mac.tar.xz  archive_sha256=12ef6830317743cfd3f0ab1724bde43fcc270d8b6d8564f8c12c2a2b7f993570
+chdman  mame0289  windows-arm64  archive=mame0289b_arm64.exe  url=https://github.com/mamedev/mame/releases/download/mame0289/mame0289b_arm64.exe  archive_sha256=f4cb463256c34b6772aee5bc553e770aca8204c31f1f947e849d8f8495bc6346
+dolphin  2609  windows-amd64  archive=dolphin-2609-x64.7z  url=https://dl.dolphin-emu.org/releases/2609/dolphin-2609-x64.7z  archive_sha256=1aa25785b7d4cb76259754c5fbcdd8856857b8e7bb4e523c57a8ac56665fba75
+dolphin  2609  windows-arm64  archive=dolphin-2609-arm64.7z  url=https://dl.dolphin-emu.org/releases/2609/dolphin-2609-arm64.7z  archive_sha256=76e217586746e2aca84b38375aea651745293c951afd5594fbf2d6bd7fa7605c

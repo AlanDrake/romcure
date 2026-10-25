@@ -1,0 +1,87 @@
+# Builds the app for each OS, adds the official converter programs pinned in
+# tools/versions.txt (nothing is compiled from third-party source), and
+# publishes portable archives. Run by hand to get the archives as workflow
+# artifacts; push a tag like v0.1.0 to also publish a GitHub release.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+env:
+  GO_VERSION: "1.27.0"
+  NODE_VERSION: "22.18.0"
+  WAILS3_VERSION: "v3.0.0-beta.30"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  package:
+    name: package (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, platform: windows-amd64 }
+          - { os: ubuntu-latest, platform: linux-amd64 }
+          - { os: macos-latest, platform: darwin-arm64 }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Linux build + WebKitGTK 4.1 dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Install pinned Wails v3 CLI
+        run: go install ${{ runner.os == 'Linux' && '-tags gtk3' || '' }} github.com/wailsapp/wails/v3/cmd/wails3@${{ env.WAILS3_VERSION }}
+
+      - name: Build app
+        run: wails3 task build ${{ runner.os == 'Linux' && 'EXTRA_TAGS=gtk3' || '' }}
+
+      - name: Fetch the official converter programs
+        run: bash tools/fetch-tools.sh ${{ matrix.platform }}
+
+      - name: Package
+        run: |
+          version="${GITHUB_REF_NAME}"
+          case "$GITHUB_REF" in refs/tags/*) ;; *) version="dev-${GITHUB_SHA::7}" ;; esac
+          bash tools/package.sh ${{ matrix.platform }} "$version"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: romcure-${{ matrix.platform }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: publish release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --title "RomCure $GITHUB_REF_NAME" --generate-notes

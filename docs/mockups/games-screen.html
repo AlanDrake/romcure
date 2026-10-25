@@ -1,0 +1,1262 @@
+<title>RomCure Games Screen</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a page strip, then the RomCure window (nav | systems rail | game list, changes bar along its
+   bottom) with a guide column beside it on wide screens. Colors and type are the app's own
+   (frontend/src/App.svelte): one dark theme and the system UI font, so the mockup reads as the real app. */
+:root {
+  color-scheme: dark;
+  --page: #0c0e14;
+  --bg: #12141c;
+  --panel: #1a1d28;
+  --raise: #232838;
+  --hover: #1f2331;
+  --sel: #1d2434;
+  --line: #2a2f3f;
+  --line-soft: #1e2230;
+  --text: #e7e9f0;
+  --muted: #98a0b5;
+  --faint: #6c7387;
+  --accent: #6b9dff;
+  --accent-ink: #0b1020;
+  --accent-soft: #1c2742;
+  --good: #5bd08a;
+  --good-soft: #1d2a22;
+  --bad: #ff7a7a;
+  --warn: #e6c15a;
+  --warn-soft: #3a3220;
+  --mark: #4d4220;
+  --shadow: rgba(0, 0, 0, 0.45);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --row: 34px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--page);
+  color: var(--text);
+  font: 14px/1.5 var(--font);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 32px;
+}
+button, select, input { font: inherit; color: var(--text); }
+button {
+  cursor: pointer;
+  background: var(--raise);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 12px;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+button.quiet { background: none; }
+button.link { background: none; border: 0; padding: 0; color: var(--accent); font-size: 12px; }
+button.link:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; cursor: pointer; }
+select { background: var(--raise); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+kbd {
+  font: 11px/1.4 var(--mono);
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0 5px;
+}
+.muted { color: var(--muted); }
+[hidden] { display: none !important; }
+
+/* Page strip */
+.top {
+  max-width: 1410px;
+  margin: 0 auto 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+.top h1 { margin: 0; font-size: 18px; font-weight: 650; text-wrap: balance; }
+.top p { margin: 4px 0 0; max-width: 74ch; color: var(--muted); font-size: 13px; }
+.top .ctl { display: flex; flex-wrap: wrap; gap: 8px; }
+.stage {
+  max-width: 1410px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1100px) minmax(0, 290px);
+  justify-content: center;
+  align-items: start;
+  gap: 20px;
+}
+
+/* The app window */
+.window {
+  height: clamp(620px, 84vh, 760px);
+  display: grid;
+  grid-template-rows: 30px minmax(0, 1fr);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 18px 50px var(--shadow);
+}
+.titlebar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+.titlebar .wc { position: absolute; top: 0; right: 0; bottom: 0; display: flex; }
+.titlebar .wc span { width: 44px; display: grid; place-items: center; color: var(--faint); font-size: 11px; }
+.app { display: grid; grid-template-columns: 164px minmax(0, 1fr); min-height: 0; }
+nav {
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+nav .brand { margin: 0 8px 12px; font-weight: 650; font-size: 15px; letter-spacing: 0.04em; }
+nav button { text-align: left; background: none; border: 0; color: var(--muted); padding: 8px 10px; border-radius: 6px; }
+nav button:hover:not(:disabled) { color: var(--text); }
+nav button[aria-current="page"] { background: var(--raise); color: var(--text); }
+
+.games { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; min-width: 0; }
+.ghead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.ghead h2 { margin: 0; font-size: 17px; display: inline; }
+.ghead .sub { color: var(--muted); font-size: 12px; margin-left: 10px; }
+.for { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 13px; color: var(--muted); min-width: 0; }
+.for .where { font-size: 12px; color: var(--faint); }
+.gbody { display: grid; grid-template-columns: 216px minmax(0, 1fr); min-height: 0; }
+
+/* Systems rail */
+.rail { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--line); }
+.rail .list { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 6px; display: flex; flex-direction: column; gap: 1px; }
+.sys {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px 3px 6px;
+  border-radius: 6px;
+}
+.sys:hover { background: var(--hover); }
+.sys.on { background: var(--sel); }
+.sys.on .nm b { color: var(--accent); }
+.sys .nm { background: none; border: 0; padding: 2px 0; text-align: left; min-width: 0; border-radius: 4px; }
+.sys .nm b { display: block; font-size: 13px; font-weight: 600; }
+.sys .nm small { display: block; font-size: 11px; line-height: 1.3; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sys .cnt { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sys.root { margin-bottom: 4px; }
+.rule { margin: 0; padding: 10px 12px 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+
+/* List */
+.listarea {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  min-width: 0;
+  --cols: 22px minmax(0, 1fr) 46px 128px 18px 74px;
+}
+.listarea.one-sys { --cols: 22px minmax(0, 1fr) 128px 18px 74px; }
+.listarea.one-sys .c-sys { display: none; }
+.tools { padding: 10px 14px 8px; display: flex; flex-direction: column; gap: 8px; }
+.search { position: relative; }
+.search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--faint); pointer-events: none; }
+.search input { width: 100%; background: var(--raise); border: 1px solid var(--line); border-radius: 6px; padding: 6px 34px 6px 30px; }
+.search input::placeholder { color: var(--faint); }
+.search kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; background: none; padding: 2px 10px; font-size: 12px; color: var(--muted); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--raise); color: var(--text); }
+.tog { border-radius: 999px; background: none; padding: 1px 10px; font-size: 12px; color: var(--muted); }
+.tog[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+.listwrap { position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; min-width: 0; }
+.lhead, .row { display: grid; grid-template-columns: var(--cols); align-items: center; column-gap: 10px; padding: 0 14px; }
+.lhead { height: 32px; border-block: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.lhead .sortb { background: none; border: 0; padding: 0; color: var(--muted); font-size: 12px; text-align: left; white-space: nowrap; }
+.lhead .sortb[aria-pressed="true"] { color: var(--text); }
+.lhead .c-size { text-align: right; }
+.lh-name { display: flex; gap: 10px; align-items: baseline; min-width: 0; white-space: nowrap; overflow: hidden; }
+.shown { color: var(--faint); overflow: hidden; text-overflow: ellipsis; }
+.vlist { position: relative; overflow-y: auto; min-height: 0; outline: none; }
+.vlist:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.vspacer { position: relative; }
+.vrows { position: absolute; top: 0; left: 0; right: 0; }
+.row { height: var(--row); border-bottom: 1px solid var(--line-soft); white-space: nowrap; user-select: none; cursor: default; }
+.row:hover { background: var(--hover); }
+.row.active { background: var(--sel); }
+.row.open { background: var(--sel); box-shadow: inset 2px 0 0 var(--accent); }
+.c-box { position: relative; display: flex; align-items: center; }
+.c-box .mine { position: absolute; left: 18px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 50%; background: var(--warn); }
+.c-name { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.c-name .t { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.badge { flex: none; font-size: 11px; line-height: 17px; padding: 0 6px; border-radius: 4px; background: var(--raise); color: var(--muted); }
+.badge.pin { background: var(--warn-soft); color: var(--warn); }
+.badge.new { background: var(--accent-soft); color: var(--accent); }
+.c-sys, .c-ver { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.c-id { text-align: center; font-size: 12px; font-weight: 600; }
+.c-id.ok { color: var(--good); }
+.c-id.name { color: var(--muted); }
+.c-id.unk { color: var(--warn); }
+.c-size { text-align: right; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+mark { background: var(--mark); color: var(--text); border-radius: 2px; }
+.empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 24px; text-align: center; color: var(--muted); }
+.empty p { margin: 0; }
+.empty .acts { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+
+/* Details drawer */
+.drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  width: min(380px, 100%);
+  overflow-y: auto;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  box-shadow: -18px 0 40px var(--shadow);
+  padding: 14px 16px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dh { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.dh h3 { margin: 0; font-size: 16px; line-height: 1.3; text-wrap: balance; }
+.dh p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.dh .x { background: none; border: 0; font-size: 18px; line-height: 1; padding: 2px 6px; color: var(--muted); }
+.drawer section { display: flex; flex-direction: column; gap: 6px; }
+.drawer h4 { margin: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.drawer h4 span { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--faint); }
+.tick { display: flex; align-items: center; gap: 8px; }
+.tick small { color: var(--faint); font-size: 12px; }
+.why { margin: 0; font-size: 12px; color: var(--muted); }
+.drawer .link { align-self: flex-start; }
+.vers { display: flex; flex-direction: column; gap: 4px; }
+.ver { display: grid; grid-template-columns: 16px minmax(0, 1fr); column-gap: 8px; align-items: start; padding: 6px 8px; border-radius: 6px; border: 1px solid transparent; cursor: pointer; }
+.ver:hover { background: var(--hover); }
+.ver.on { background: var(--good-soft); border-color: var(--line); }
+.ver input { margin-top: 3px; }
+.ver .vt { font-size: 13px; overflow-wrap: anywhere; }
+.ver .vm { grid-column: 2; font-size: 12px; color: var(--muted); }
+.ver .vm b { color: var(--good); font-weight: 600; }
+dl.facts { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; font-size: 12px; }
+dl.facts dt { color: var(--faint); }
+dl.facts dd { margin: 0; color: var(--muted); overflow-wrap: anywhere; }
+dl.facts .path { font-family: var(--mono); font-size: 11.5px; }
+
+/* Changes bar and messages */
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 9px 14px;
+  min-height: 54px;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+}
+.bar .state { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.bar .l1 { font-size: 13px; }
+.bar .l1 .ok { color: var(--good); }
+.bar .l2 { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 14px; align-items: center; }
+.bar .over { color: var(--bad); }
+.bar .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.meter { width: min(100%, 420px); height: 6px; border-radius: 3px; background: var(--raise); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.meter.warn i { background: var(--warn); }
+.meter.over i { background: var(--bad); }
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: calc(100% - 28px);
+  padding: 8px 8px 8px 14px;
+  background: var(--raise);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px var(--shadow);
+  font-size: 13px;
+}
+.toast .acts { display: flex; gap: 6px; flex: none; }
+.toast button { padding: 3px 10px; background: var(--panel); }
+
+/* Guide */
+.guide {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px 16px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.guide h2 { margin: 0 0 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.guide ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.guide li::marker { color: var(--faint); }
+.guide .keys { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 10px; align-items: center; margin: 0; }
+.guide .keys dt { white-space: nowrap; }
+.guide .keys dd { margin: 0; color: var(--muted); }
+.guide .small { margin: 0; color: var(--faint); font-size: 12px; }
+
+@media (max-width: 1260px) {
+  .stage { grid-template-columns: minmax(0, 1100px); }
+}
+@media (max-width: 900px) {
+  .window { height: 780px; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  nav { flex-direction: row; overflow-x: auto; padding: 6px; border-right: 0; border-bottom: 1px solid var(--line); }
+  nav .brand { display: none; }
+  .gbody { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .rail { border-right: 0; border-bottom: 1px solid var(--line); }
+  .rail .list { flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: 6px; gap: 4px; }
+  .sys { grid-template-columns: 16px auto auto; flex: none; }
+  .sys.root { margin: 0; }
+  .sys .nm small { display: none; }
+  .rule { display: none; }
+  .listarea, .listarea.one-sys { --cols: 22px minmax(0, 1fr) 18px 64px; }
+  .c-sys, .c-ver { display: none; }
+}
+@media (max-width: 520px) {
+  .titlebar .wc { display: none; }
+  .ghead .sub { display: block; margin: 2px 0 0; }
+  .listarea, .listarea.one-sys { --cols: 22px minmax(0, 1fr) 18px; }
+  .c-size { display: none; }
+}
+</style>
+
+<header class="top">
+  <div>
+    <h1>RomCure · Games screen</h1>
+    <p>A clickable mockup with a made-up library. Ticks belong to the output you're choosing for, a game's version is shared by every output, and output folders change only when you press Apply. Nothing here is saved.</p>
+  </div>
+  <div class="ctl">
+    <button type="button" id="simulate">Simulate new games</button>
+    <button type="button" id="reset" class="quiet">Reset mockup</button>
+  </div>
+</header>
+
+<div class="stage">
+  <div class="window">
+    <div class="titlebar"><span>RomCure</span><span class="wc" aria-hidden="true"><span>&#8212;</span><span>&#9744;</span><span>&#10005;</span></span></div>
+    <div class="app">
+      <nav aria-label="Sections">
+        <div class="brand">RomCure</div>
+        <button type="button" data-nav="Library">Library</button>
+        <button type="button" aria-current="page">Games</button>
+        <button type="button" data-nav="Outputs">Outputs</button>
+        <button type="button" data-nav="Settings">Settings</button>
+        <button type="button" data-nav="Help">Help</button>
+      </nav>
+      <section class="games" aria-labelledby="games-h">
+        <div class="ghead">
+          <div><h2 id="games-h">Games</h2><span class="sub" id="libsum"></span></div>
+          <div class="for">
+            <label for="out">Choosing for</label>
+            <select id="out"></select>
+            <span class="where" id="where"></span>
+          </div>
+        </div>
+        <div class="gbody">
+          <aside class="rail" aria-label="Systems">
+            <div class="list" id="rail"></div>
+            <p class="rule" id="rule"></p>
+          </aside>
+          <div class="listarea" id="listarea">
+            <div class="tools">
+              <div class="search">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="7" cy="7" r="4.8"/><path d="M10.6 10.6 14 14" stroke-linecap="round"/></svg>
+                <input id="q" type="search" placeholder="Search games" aria-label="Search games" autocomplete="off" spellcheck="false">
+                <kbd aria-hidden="true">/</kbd>
+              </div>
+              <div class="chips">
+                <div class="seg" role="group" aria-label="Show">
+                  <button type="button" data-show="all">All</button><button type="button" data-show="in">Included</button><button type="button" data-show="out">Not included</button>
+                </div>
+                <button type="button" class="tog" data-flag="several">Several versions</button>
+                <button type="button" class="tog" data-flag="choices">Your choices</button>
+                <button type="button" class="tog" data-flag="unverified">Not verified</button>
+                <button type="button" class="tog" data-flag="fresh" id="freshchip" hidden>New</button>
+                <button type="button" class="link" id="clear" hidden>Clear filters</button>
+              </div>
+            </div>
+            <div class="listwrap">
+              <div class="lhead">
+                <span class="c-box"><input type="checkbox" id="allshown"></span>
+                <span class="lh-name"><button type="button" class="sortb" data-sort="name" data-label="Game">Game</button><span class="shown" id="shown"></span></span>
+                <button type="button" class="sortb c-sys" data-sort="system" data-label="System">System</button>
+                <span class="c-ver">Version</span>
+                <span class="c-id" title="How the game was identified">ID</span>
+                <button type="button" class="sortb c-size" data-sort="size" data-label="Size">Size</button>
+              </div>
+              <div class="vlist" id="vlist" tabindex="0" role="grid" aria-label="Games">
+                <div class="vspacer" id="vspacer"><div class="vrows" id="vrows" role="rowgroup"></div></div>
+                <div class="empty" id="empty" hidden></div>
+              </div>
+              <aside class="drawer" id="drawer" hidden aria-label="Game details"></aside>
+              <div class="toast" id="toast" role="status" hidden></div>
+            </div>
+          </div>
+        </div>
+        <footer class="bar" id="bar"></footer>
+      </section>
+    </div>
+  </div>
+
+  <aside class="guide" aria-label="How to use this mockup">
+    <div>
+      <h2>Try it</h2>
+      <ul>
+        <li>Search for <strong>zelda past</strong> or <strong>pokemon</strong>. Word order, accents and punctuation don't matter, and version names match too.</li>
+        <li>Click a system's name to list only its games (Ctrl-click adds another). Click its box to take or drop the whole system.</li>
+        <li>Tick a game, then Shift-click another box: everything in between follows.</li>
+        <li>With a search or filter on, the box in the list header acts on every game shown. Undo is in the message that pops up.</li>
+        <li>On Miyoo SD, tick PSP. The card overflows and Apply is blocked with the reason.</li>
+        <li>Click a row to see why a game is in or out, tick it on other outputs, or change its version for every output.</li>
+        <li>Press <strong>Simulate new games</strong>. Miyoo SD takes the new GBA games because GBA is ticked, and leaves out the SNES ones because its SNES games were picked by hand.</li>
+        <li>Switch <strong>Choosing for</strong> to see another output's ticks, then press Apply.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Keyboard</h2>
+      <dl class="keys">
+        <dt><kbd>&#8593;</kbd> <kbd>&#8595;</kbd></dt><dd>Move</dd>
+        <dt><kbd>Space</kbd></dt><dd>Tick (with Shift: a range)</dd>
+        <dt><kbd>Enter</kbd></dt><dd>Details</dd>
+        <dt><kbd>/</kbd></dt><dd>Search</dd>
+        <dt><kbd>Esc</kbd></dt><dd>Close details or clear search</dd>
+      </dl>
+    </div>
+    <div>
+      <h2>Decided for this design</h2>
+      <ul>
+        <li>Each output has its own ticks; a game's version is shared by every output.</li>
+        <li>Ticks save at once; output folders change only on Apply.</li>
+        <li>New games follow their system's box, or the output's default when the system has none.</li>
+      </ul>
+    </div>
+    <p class="small">Games, sizes and folders are made up. The full plan is docs/game-selection-plan.md in the repository.</p>
+  </aside>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- helpers ----------
+  const nf = new Intl.NumberFormat('en-US');
+  const fmt = (n) => nf.format(n);
+  const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ESC[c]);
+  const GB = 1073741824, MB = 1048576;
+  function size(b, est) {
+    let s;
+    if (b >= GB) s = (b / GB).toFixed(b >= 100 * GB ? 0 : 1) + ' GB';
+    else if (b >= MB) s = (b / MB).toFixed(b >= 100 * MB ? 0 : 1) + ' MB';
+    else s = Math.max(1, Math.round(b / 1024)) + ' KB';
+    return (est ? '≈ ' : '') + s;
+  }
+  const plural = (n, one, many) => fmt(n) + ' ' + (n === 1 ? one : many || one + 's');
+  const words = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
+  const norm = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- made-up library ----------
+  function rng(seed) {
+    return () => {
+      seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  let R;
+  const any = (a) => a[Math.floor(R() * a.length)];
+  const chance = (p) => R() < p;
+
+  const SYSTEMS = [
+    { id: 'gb', short: 'GB', name: 'Nintendo - Game Boy', folder: 'gb', n: 820, lo: 32e3, hi: 2e6 },
+    { id: 'gbc', short: 'GBC', name: 'Nintendo - Game Boy Color', folder: 'gbc', n: 640, lo: 1e6, hi: 4e6 },
+    { id: 'gba', short: 'GBA', name: 'Nintendo - Game Boy Advance', folder: 'gba', n: 1380, lo: 4e6, hi: 32e6 },
+    { id: 'nes', short: 'NES', name: 'Nintendo - Nintendo Entertainment System', folder: 'nes', n: 1560, lo: 24e3, hi: 1e6 },
+    { id: 'snes', short: 'SNES', name: 'Nintendo - Super Nintendo Entertainment System', folder: 'snes', n: 2240, lo: 256e3, hi: 6e6 },
+    { id: 'md', short: 'MD', name: 'Sega - Mega Drive - Genesis', folder: 'megadrive', n: 1180, lo: 256e3, hi: 5e6 },
+    { id: 'psx', short: 'PS1', name: 'Sony - PlayStation', folder: 'psx', n: 2520, lo: 150e6, hi: 680e6, disc: true },
+    { id: 'psp', short: 'PSP', name: 'Sony - PlayStation Portable', folder: 'psp', n: 1060, lo: 90e6, hi: 1.6e9, disc: true },
+  ];
+  const SYS = new Map(SYSTEMS.map((s, i) => [s.id, Object.assign(s, { i })]));
+
+  const REAL = {
+    gb: ['Tetris', 'Pokémon - Red Version', "Kirby's Dream Land", 'Super Mario Land 2 - 6 Golden Coins', "Legend of Zelda, The - Link's Awakening", 'Metroid II - Return of Samus'],
+    gbc: ['Pokémon - Crystal Version', 'Legend of Zelda, The - Oracle of Ages', 'Wario Land 3', 'Shantae', 'Pokémon Pinball'],
+    gba: ['Advance Wars', 'Pokémon - Emerald Version', 'Pokémon - FireRed Version', 'Metroid Fusion', 'Golden Sun', 'Mario Kart - Super Circuit', 'Legend of Zelda, The - The Minish Cap', 'Castlevania - Aria of Sorrow', 'Fire Emblem', 'WarioWare, Inc. - Mega Microgame$!'],
+    nes: ['Super Mario Bros. 3', 'Legend of Zelda, The', 'Metroid', 'Mega Man 2', 'Castlevania', "Kirby's Adventure", 'DuckTales', 'Punch-Out!!'],
+    snes: ['Legend of Zelda, The - A Link to the Past', 'Super Mario World', 'Super Metroid', 'Chrono Trigger', 'Donkey Kong Country', 'EarthBound', 'Secret of Mana', 'F-Zero', 'Super Mario Kart', 'Final Fantasy III'],
+    md: ['Sonic the Hedgehog 2', 'Streets of Rage 2', 'Gunstar Heroes', 'Phantasy Star IV', 'Ecco the Dolphin', 'Shining Force II'],
+    psx: [['Final Fantasy VII', 3], ['Legend of Dragoon', 4], ['Metal Gear Solid', 2], 'Wipeout 2097', 'Ape Escape', 'Castlevania - Symphony of the Night', 'Spyro the Dragon', ['Gran Turismo 2', 2], 'Tekken 3', 'Vagrant Story'],
+    psp: ['Daxter', 'Patapon', 'LocoRoco', 'Monster Hunter Freedom Unite', 'Crisis Core - Final Fantasy VII', 'Lumines'],
+  };
+  const W1 = ['Super', 'Mega', 'Turbo', 'Hyper', 'Neo', 'Grand', 'Royal', 'Little', 'Crystal', 'Shadow', 'Iron', 'Silver', 'Golden', 'Cosmic', 'Thunder', 'Pixel', 'Mystic', 'Rocket', 'Phantom', 'Dragon', 'Star', 'Moon', 'Sky', 'Ocean', 'Desert', 'Frozen', 'Burning', 'Secret', 'Lost', 'Wild', 'Brave', 'Tiny', 'Mighty', 'Lucky', 'Galactic', 'Atomic', 'Midnight', 'Crimson', 'Emerald', 'Sapphire', 'Solar', 'Lunar', 'Storm', 'Velvet', 'Copper', 'Neon', 'Arcane', 'Savage', 'Rapid', 'Silent'];
+  const W2 = ['Quest', 'Racer', 'Knights', 'Warriors', 'Legends', 'Tactics', 'Soccer', 'Golf', 'Pinball', 'Puzzle', 'Fighter', 'Ninja', 'Saga', 'Odyssey', 'Adventure', 'Island', 'Kingdom', 'Circuit', 'Rally', 'Patrol', 'Commando', 'Wrestling', 'Baseball', 'Derby', 'Chronicles', 'Heroes', 'Academy', 'Dungeon', 'Fortress', 'Blaster', 'Striker', 'Hunter', 'Pilot', 'Squadron', 'Party', 'Detective', 'Garden', 'Express', 'Arena', 'Brawl', 'Drift', 'Harbor', 'Station', 'Frontier', 'Empire', 'Galaxy', 'Valley', 'Mansion', 'Tower', 'Voyage'];
+  const SUFFIX = [' II', ' III', ' 2', ' 3', ' Deluxe', ' Advance', ' Gold', ' Special', ' DX', ' Plus', ' Zero', ' Returns', ' Origins', ' Turbo'];
+  function invent() {
+    const r = R();
+    let n;
+    if (r < 0.5) n = any(W1) + ' ' + any(W2);
+    else if (r < 0.64) n = any(['Legend', 'Curse', 'Rise', 'Tales', 'Battle', 'Lord', 'Escape', 'Spirit', 'Night', 'Heart']) + ' of the ' + any(W1) + ' ' + any(W2);
+    else if (r < 0.78) n = any(W1) + ' ' + any(W2) + ' - ' + any(['The ', '', 'Return of the ']) + any(W1) + ' ' + any(W2);
+    else if (r < 0.88) n = any(['Pro', 'World', 'International', 'Super', 'All-Star']) + ' ' + any(['Soccer', 'Golf', 'Tennis', 'Baseball', 'Hockey', 'Racing', 'Bowling', 'Volleyball']) + " '" + (90 + Math.floor(R() * 9));
+    else n = any(W1) + any(['ia', 'ix', 'on', 'ara']) + ' ' + any(W2);
+    return chance(0.18) ? n + any(SUFFIX) : n;
+  }
+  function letters(n) {
+    let s = '';
+    for (let i = 0; i < n; i++) s += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(R() * 26)];
+    return s;
+  }
+
+  const REG_CART = ['USA', 'Europe', 'Japan', 'World', 'USA, Europe', 'Germany', 'France', 'Australia', 'Korea', 'Brazil', 'Spain'];
+  const REG_DISC = ['USA', 'Europe', 'Japan', 'Germany', 'France', 'Italy', 'Spain'];
+  const FIRST = ['USA', 'USA', 'USA', 'Europe', 'Japan', 'Japan', 'World', 'USA, Europe'];
+  function versionsFor(sys, base) {
+    const x = R();
+    const n = x < 0.55 ? 1 : x < 0.8 ? 2 : x < 0.93 ? 3 : 4;
+    const pool = sys.disc ? REG_DISC : REG_CART;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      let region = i === 0 ? any(FIRST) : any(pool);
+      let rev = chance(0.14) ? any(['Rev 1', 'Rev 2', 'Rev A']) : '';
+      if (out.some((v) => v.region === region && v.rev === rev)) { region = any(pool); rev = rev || 'Rev 1'; }
+      const lang = region === 'Europe' && chance(0.6) ? any(['En,Fr,De', 'En,Fr,De,Es,It', 'En,De']) : '';
+      const flag = i > 0 && chance(0.05) ? any(['Beta', 'Proto', 'Demo']) : '';
+      out.push({ region, lang, rev, flag, conf: chance(0.9) ? 'ok' : 'name', size: Math.round(base * (0.94 + R() * 0.12)) });
+    }
+    return out;
+  }
+  function vTitle(g, v) {
+    if (g.unk) return g.name;
+    let t = g.name + ' (' + v.region + ')';
+    if (v.lang) t += ' (' + v.lang + ')';
+    if (v.rev) t += ' (' + v.rev + ')';
+    if (v.flag) t += ' (' + v.flag + ')';
+    return t;
+  }
+  const tagLine = (g, v) => (g.unk ? 'unknown file' : [v.region, v.rev, v.flag && v.flag.toLowerCase()].filter(Boolean).join(' · '));
+
+  // "USA first" preset, as in internal/rules/presets.go
+  const ORDER = ['USA', 'World', 'USA, Europe', 'Canada', 'Australia', 'UK', 'Europe', 'Japan', 'Asia'];
+  const rank = (r) => { const i = ORDER.indexOf(r); return i < 0 ? 50 : i; };
+  const revN = (r) => (!r ? 0 : /\d/.test(r) ? parseInt(r.replace(/\D+/g, ''), 10) : 0.5);
+  const sortKey = (v) => [v.flag ? 1 : 0, v.conf === 'ok' ? 0 : 1, rank(v.region), -revN(v.rev)];
+  function autoPick(vs) {
+    let best = 0;
+    for (let i = 1; i < vs.length; i++) {
+      const a = sortKey(vs[i]), b = sortKey(vs[best]);
+      for (let k = 0; k < a.length; k++) if (a[k] !== b[k]) { if (a[k] < b[k]) best = i; break; }
+    }
+    return best;
+  }
+  function reason(g) {
+    if (g.unk) return 'The only file found for this game; it could not be identified.';
+    const n = g.versions.length, v = g.versions[g.auto];
+    if (n === 1) return v.flag ? `The only version you have (a ${v.flag.toLowerCase()}).` : 'The only version you have.';
+    const bits = [v.conf === 'ok' ? 'verified' : 'identified by file name', 'region ' + v.region];
+    if (v.rev) bits.push('latest revision');
+    const skipped = g.versions.filter((x) => x.flag).length;
+    return `Best of ${n} versions: ${bits.join(', ')}.` + (skipped ? ` Skipped ${plural(skipped, 'beta, proto or demo version')}.` : '');
+  }
+
+  // ---------- state ----------
+  let S;
+  function finish(g) {
+    g.auto = autoPick(g.versions);
+    g.key = g.name.toLowerCase();
+    g.s = norm(g.name + ' ' + g.versions.map((v) => vTitle(g, v)).join(' '));
+  }
+  function makeGame(sys, name, discs, unk, flagOnly, isNew) {
+    const base = Math.exp(Math.log(sys.lo) + R() * (Math.log(sys.hi) - Math.log(sys.lo)));
+    let versions;
+    if (unk) versions = [{ region: '', lang: '', rev: '', flag: '', conf: 'unk', size: Math.round(base) }];
+    else {
+      versions = versionsFor(sys, base);
+      if (flagOnly) { versions = [versions[0]]; versions[0].flag = any(['Proto', 'Demo', 'Beta']); }
+    }
+    const g = { id: S.nextId++, sys: sys.id, name, discs, versions, auto: 0, override: null, unk, flagOnly, isNew, est: !!sys.disc && chance(0.7) };
+    finish(g);
+    return g;
+  }
+  function add(g) { S.games.push(g); S.byId.set(g.id, g); }
+
+  function build() {
+    R = rng(20261024);
+    S = {
+      games: [], byId: new Map(), nextId: 1, outputs: [], cur: 'miyoo',
+      sysFilter: new Set(), query: '', tokens: [], show: 'all',
+      several: false, choices: false, unverified: false, fresh: false,
+      sort: { key: 'name', dir: 1 }, active: -1, anchor: null, drawer: null,
+      keep: new Set(), undo: [], applying: null, v: 0, batches: 0,
+    };
+    for (const sys of SYSTEMS) {
+      const used = new Set();
+      const reals = REAL[sys.id] || [];
+      for (let k = 0; k < sys.n; k++) {
+        let name, discs = 1, unk = false, flagOnly = false;
+        if (k < reals.length) {
+          const r = reals[k];
+          if (Array.isArray(r)) [name, discs] = r; else name = r;
+        } else if (chance(0.015)) {
+          unk = true;
+          do { name = sys.id + '-' + letters(5); } while (used.has(name));
+        } else {
+          do { name = invent(); } while (used.has(name));
+          flagOnly = chance(0.02);
+          if (sys.id === 'psx' && chance(0.06)) discs = chance(0.3) ? 3 : 2;
+        }
+        used.add(name);
+        add(makeGame(sys, name, discs, unk, flagOnly, false));
+      }
+    }
+    S.outputs = [
+      { id: 'miyoo', name: 'Miyoo SD', kind: 'device', label: 'SD card, copies', root: 'G:\\Roms', fs: 'FAT32', capacity: 63.8e9, other: 1.6 * GB,
+        all: false, systems: new Map([['gb', true], ['gba', true]]), picks: new Map(), applied: new Map() },
+      { id: 'pc', name: 'PC RetroArch', kind: 'retroarch', label: 'RetroArch, links', root: 'D:\\RetroArch\\roms',
+        all: true, systems: new Map(), picks: new Map(), applied: new Map() },
+      { id: 'esde', name: 'ES-DE Desktop', kind: 'esde', label: 'ES-DE, links', root: 'D:\\ES-DE\\ROMs',
+        all: true, systems: new Map([['psp', false]]), picks: new Map(), applied: new Map() },
+    ];
+    seed();
+  }
+
+  // Choices made before the mockup opens, plus a few changes made after the last Apply.
+  function seed() {
+    const [miyoo, pc] = S.outputs;
+    const of = (id) => S.games.filter((g) => g.sys === id);
+    const plain = (g) => !g.unk && !g.flagOnly;
+    const hand = [];
+    const take = (id, nReal, nMore) => {
+      const list = of(id);
+      hand.push(...list.slice(0, nReal));
+      const rest = list.slice(REAL[id].length).filter(plain);
+      for (let i = 0; i < nMore; i++) hand.push(rest[Math.floor(R() * rest.length)]);
+    };
+    take('snes', 10, 14); take('nes', 8, 6); take('gbc', 5, 3); take('md', 6, 2);
+    for (const name of ['Wipeout 2097', 'Castlevania - Symphony of the Night', 'Spyro the Dragon']) hand.push(of('psx').find((g) => g.name === name));
+    for (const g of hand) miyoo.picks.set(g.id, true);
+    for (const g of S.games) if (g.unk || g.flagOnly) pc.picks.set(g.id, false);
+
+    const aw = S.games.find((g) => g.name === 'Advance Wars');
+    aw.versions = [
+      { region: 'USA', lang: '', rev: '', flag: '', conf: 'ok', size: 4 * MB },
+      { region: 'Europe', lang: 'En,Fr,De', rev: '', flag: '', conf: 'ok', size: 4 * MB },
+      { region: 'USA', lang: '', rev: 'Rev 1', flag: '', conf: 'ok', size: 4 * MB },
+    ];
+    finish(aw);
+
+    for (const o of S.outputs) o.applied = included(o);
+    aw.override = 0;
+    for (const g of hand.slice(-5)) miyoo.applied.delete(g.id);
+    const gone = of('nes').slice(REAL.nes.length).find((g) => plain(g) && !miyoo.picks.has(g.id));
+    miyoo.applied.set(gone.id, gone.auto);
+  }
+
+  // ---------- rules: game tick, then system tick, then the output's default ----------
+  const outById = (id) => S.outputs.find((o) => o.id === id);
+  const cur = () => outById(S.cur);
+  const picked = (g) => (g.override === null ? g.auto : g.override);
+  function inherited(o, sysId) { const s = o.systems.get(sysId); return s === undefined ? o.all : s; }
+  function eff(o, g) { const d = o.picks.get(g.id); return d === undefined ? inherited(o, g.sys) : d; }
+  function setGame(o, g, val) { if (val === inherited(o, g.sys)) o.picks.delete(g.id); else o.picks.set(g.id, val); }
+  const gameSize = (g, vi = picked(g)) => g.versions[vi].size * g.discs;
+  function included(o) {
+    const m = new Map();
+    for (const g of S.games) if (eff(o, g)) m.set(g.id, picked(g));
+    return m;
+  }
+  function pending(o) {
+    const now = included(o);
+    const p = { add: 0, rem: 0, rep: 0, total: 0, count: now.size, estimated: false };
+    for (const [id, vi] of now) {
+      const g = S.byId.get(id), sz = gameSize(g, vi);
+      p.total += sz;
+      if (g.est) p.estimated = true;
+      const was = o.applied.get(id);
+      if (was === undefined) p.add++;
+      else if (was !== vi) p.rep++;
+    }
+    for (const id of o.applied.keys()) if (!now.has(id)) p.rem++;
+    p.any = p.add + p.rem + p.rep > 0;
+    if (o.kind === 'device') {
+      p.used = p.total + o.other;
+      p.free = o.capacity - p.used;
+      p.fill = p.used / o.capacity;
+      p.blocked = p.free < 0;
+    }
+    return p;
+  }
+  function why(o, g) {
+    const sys = SYS.get(g.sys).short;
+    if (o.picks.has(g.id)) return o.picks.get(g.id) ? 'Ticked by you.' : 'Unticked by you.';
+    if (o.systems.has(g.sys)) return o.systems.get(g.sys) ? `Included because ${sys} is ticked. New ${sys} games are added too.` : `Left out because ${sys} is unticked.`;
+    return o.all ? `Included: ${o.name} takes every game unless you untick it.` : `Left out: ${o.name} only takes the games and systems you tick.`;
+  }
+  function whyShort(o, g) {
+    const sys = SYS.get(g.sys).short;
+    if (o.picks.has(g.id)) return o.picks.get(g.id) ? 'ticked by you' : 'unticked by you';
+    if (o.systems.has(g.sys)) return o.systems.get(g.sys) ? `${sys} is ticked` : `${sys} is unticked`;
+    return o.all ? 'takes every game' : 'only what you tick';
+  }
+  function rule(o) {
+    const on = [], off = [];
+    for (const s of SYSTEMS) (inherited(o, s.id) ? on : off).push(s.short);
+    if (o.all) return off.length ? `New games are added automatically, except to ${words(off)}.` : 'New games are added automatically.';
+    return on.length ? `New games are added to ${words(on)}. Elsewhere they're left out until you tick them.` : 'New games are left out until you tick them.';
+  }
+
+  // ---------- the filtered list ----------
+  let memo = { v: -1, list: [], other: 0 };
+  function list() {
+    if (memo.v === S.v) return memo;
+    const o = cur(), sf = S.sysFilter, toks = S.tokens;
+    const out = [];
+    let other = 0;
+    for (const g of S.games) {
+      if (toks.length && !toks.every((t) => g.s.includes(t))) continue;
+      if (sf.size && !sf.has(g.sys)) { if (toks.length) other++; continue; }
+      if (S.several && g.versions.length < 2) continue;
+      if (S.unverified && g.versions[picked(g)].conf === 'ok') continue;
+      if (S.choices && !o.picks.has(g.id) && g.override === null) continue;
+      if (S.fresh && !g.isNew) continue;
+      if (S.show !== 'all' && !S.keep.has(g.id) && eff(o, g) !== (S.show === 'in')) continue;
+      out.push(g);
+    }
+    const { key, dir } = S.sort;
+    out.sort((a, b) => {
+      let c = 0;
+      if (key === 'system') c = SYS.get(a.sys).i - SYS.get(b.sys).i;
+      else if (key === 'size') c = gameSize(a) - gameSize(b);
+      if (c === 0) c = a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
+      return c * dir;
+    });
+    memo = { v: S.v, list: out, other };
+    return memo;
+  }
+
+  // ---------- rendering ----------
+  const el = {};
+  const ROW = 34, OVER = 10;
+  const CONF = { ok: ['✓', 'Verified against the DAT', 'verified'], name: ['≈', 'Identified by file name', 'by file name'], unk: ['?', 'Unidentified file', 'unidentified'] };
+
+  function keepFocus(root, fn) {
+    const a = document.activeElement;
+    const k = a && root.contains(a) ? a.dataset.k : null;
+    fn();
+    if (k) { const b = root.querySelector(`[data-k="${CSS.escape(k)}"]`); if (b) b.focus(); }
+  }
+  function touch() { S.v++; render(); }
+  function render() {
+    const o = cur();
+    el.out.value = o.id;
+    el.where.textContent = `${o.root} · ${o.label}${o.fs ? ' · ' + o.fs : ''}`;
+    el.libsum.textContent = `${fmt(S.games.length)} games in ${SYSTEMS.length} systems · versions follow “USA first”`;
+    renderRail(); renderTools(); renderList(); renderBar(); renderDrawer();
+  }
+
+  function renderRail() {
+    const o = cur();
+    const per = new Map(SYSTEMS.map((s) => [s.id, { t: 0, n: 0 }]));
+    let T = 0, N = 0;
+    for (const g of S.games) { const c = per.get(g.sys); c.t++; T++; if (eff(o, g)) { c.n++; N++; } }
+    const row = (id, b, small, n, t, on, root) => `
+      <div class="sys${on ? ' on' : ''}${root ? ' root' : ''}">
+        <input type="checkbox" data-k="box:${id}" data-box="${id}" data-n="${n}" data-t="${t}" aria-label="Include ${root ? 'every game' : 'every ' + esc(b) + ' game'} in ${esc(o.name)}"${n === t ? ' checked' : ''}>
+        <button type="button" class="nm" data-k="nm:${id}" data-nm="${id}" aria-pressed="${on}"><b>${esc(b)}</b>${small ? `<small>${esc(small)}</small>` : ''}</button>
+        <span class="cnt">${fmt(n)}/${fmt(t)}</span>
+      </div>`;
+    let html = row('*', 'All systems', '', N, T, S.sysFilter.size === 0, true);
+    for (const s of SYSTEMS) { const c = per.get(s.id); html += row(s.id, s.short, s.name, c.n, c.t, S.sysFilter.has(s.id), false); }
+    keepFocus(el.rail, () => { el.rail.innerHTML = html; });
+    el.rail.querySelectorAll('[data-box]').forEach((box) => {
+      const n = +box.dataset.n, t = +box.dataset.t;
+      box.indeterminate = n > 0 && n < t;
+    });
+    el.rule.textContent = rule(o);
+  }
+
+  function renderTools() {
+    document.querySelectorAll('[data-show]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.show === S.show)));
+    document.querySelectorAll('[data-flag]').forEach((b) => b.setAttribute('aria-pressed', String(S[b.dataset.flag])));
+    el.freshchip.hidden = S.batches === 0;
+    el.clear.hidden = !(S.show !== 'all' || S.several || S.choices || S.unverified || S.fresh || S.query);
+  }
+
+  function renderList() {
+    const o = cur(), { list: L, other } = list();
+    let n = 0;
+    for (const g of L) if (eff(o, g)) n++;
+    el.listarea.classList.toggle('one-sys', S.sysFilter.size === 1);
+    el.allshown.checked = L.length > 0 && n === L.length;
+    el.allshown.indeterminate = n > 0 && n < L.length;
+    el.allshown.disabled = L.length === 0;
+    el.allshown.setAttribute('aria-label', L.length && n === L.length ? `Leave out all ${fmt(L.length)} shown games` : `Include all ${fmt(L.length)} shown games`);
+    el.shown.innerHTML = `${fmt(L.length)} shown · ${fmt(n)} included` +
+      (other ? ` · <button type="button" class="link" data-act="allsys">${plural(other, 'more match', 'more matches')} in other systems</button>` : '');
+    document.querySelectorAll('[data-sort]').forEach((b) => {
+      const on = S.sort.key === b.dataset.sort;
+      b.textContent = b.dataset.label + (on ? (S.sort.dir > 0 ? ' ▲' : ' ▼') : '');
+      b.setAttribute('aria-pressed', String(on));
+    });
+    el.vspacer.style.height = L.length * ROW + 'px';
+    if (L.length) el.empty.hidden = true;
+    else { el.empty.hidden = false; el.empty.innerHTML = emptyHTML(other); }
+    renderRows();
+  }
+  function emptyHTML(other) {
+    const names = [...S.sysFilter].map((id) => SYS.get(id).short);
+    const where = names.length ? ' in ' + words(names) : '';
+    const what = S.query.trim() ? `No games match “${esc(S.query.trim())}”${where}.` : `No games${where} fit these filters.`;
+    const acts = [];
+    if (S.sysFilter.size && other) acts.push('<button type="button" data-act="allsys">Search all systems</button>');
+    acts.push('<button type="button" data-act="clear">Clear filters</button>');
+    return `<p>${what}</p><div class="acts">${acts.join('')}</div>`;
+  }
+
+  function mark(text, toks) {
+    if (!toks.length) return esc(text);
+    let ns = '';
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i].normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      ns += /^[a-z0-9]$/.test(c) ? c : ' ';
+    }
+    const hit = new Uint8Array(text.length);
+    for (const t of toks) for (let k = ns.indexOf(t); k !== -1; k = ns.indexOf(t, k + 1)) hit.fill(1, k, k + t.length);
+    let out = '', open = false;
+    for (let i = 0; i < text.length; i++) {
+      if (!!hit[i] !== open) { out += open ? '</mark>' : '<mark>'; open = !open; }
+      out += esc(text[i]);
+    }
+    return open ? out + '</mark>' : out;
+  }
+  function rowHTML(o, g, i, toks) {
+    const v = g.versions[picked(g)], inc = eff(o, g), mine = o.picks.has(g.id);
+    const [icon, label] = CONF[v.conf];
+    let badges = '';
+    if (g.discs > 1) badges += `<span class="badge">${g.discs} discs</span>`;
+    if (g.versions.length > 1) badges += `<span class="badge">${g.versions.length} versions</span>`;
+    if (g.override !== null) badges += '<span class="badge pin">your version</span>';
+    if (g.isNew) badges += '<span class="badge new">new</span>';
+    const cls = 'row' + (i === S.active ? ' active' : '') + (g.id === S.drawer ? ' open' : '');
+    return `<div class="${cls}" role="row" id="r${i}" data-i="${i}" aria-selected="${g.id === S.drawer}">` +
+      `<span class="c-box" role="gridcell"><input type="checkbox" tabindex="-1"${inc ? ' checked' : ''} aria-label="Include ${esc(g.name)}">` +
+      (mine ? `<span class="mine" title="${inc ? 'Ticked' : 'Unticked'} by you"></span>` : '') + '</span>' +
+      `<span class="c-name" role="gridcell"><span class="t">${mark(g.name, toks)}</span>${badges}</span>` +
+      `<span class="c-sys" role="gridcell">${SYS.get(g.sys).short}</span>` +
+      `<span class="c-ver" role="gridcell">${esc(tagLine(g, v))}</span>` +
+      `<span class="c-id ${v.conf}" role="gridcell" title="${label}">${icon}</span>` +
+      `<span class="c-size" role="gridcell"${g.est ? ' title="Estimate: converted to CHD when applied"' : ''}>${size(gameSize(g), g.est)}</span></div>`;
+  }
+  function renderRows() {
+    const o = cur(), L = list().list;
+    const top = el.vlist.scrollTop, h = el.vlist.clientHeight || 400;
+    const start = Math.max(0, Math.floor(top / ROW) - OVER);
+    const end = Math.min(L.length, Math.ceil((top + h) / ROW) + OVER);
+    let html = '';
+    for (let i = start; i < end; i++) html += rowHTML(o, L[i], i, S.tokens);
+    el.vrows.style.transform = `translateY(${start * ROW}px)`;
+    el.vrows.innerHTML = html;
+    el.vlist.setAttribute('aria-rowcount', String(L.length));
+    if (S.active >= start && S.active < end) el.vlist.setAttribute('aria-activedescendant', 'r' + S.active);
+    else el.vlist.removeAttribute('aria-activedescendant');
+  }
+
+  function renderBar() {
+    const o = cur(), p = pending(o);
+    const others = S.outputs.filter((x) => x !== o && pending(x).any);
+    let l1, meter = '', l2 = '';
+    if (S.applying) {
+      const a = S.applying;
+      l1 = `Applying to <b>${esc(words(a.names))}</b>… ${Math.round(a.p * 100)}%`;
+      meter = `<div class="meter"><i style="width:${(a.p * 100).toFixed(1)}%"></i></div>`;
+    } else {
+      if (p.any) {
+        const parts = [];
+        if (p.add) parts.push(`+${fmt(p.add)} to add`);
+        if (p.rem) parts.push(`−${fmt(p.rem)} to remove`);
+        if (p.rep) parts.push(plural(p.rep, 'version change'));
+        l1 = `<b>${parts.join(' · ')}</b> <span class="muted">not applied to ${esc(o.name)} yet</span>`;
+      } else {
+        l1 = `<span class="ok">✓</span> ${esc(o.name)} is up to date <span class="muted">· ${plural(p.count, 'game')}</span>`;
+      }
+      if (o.kind === 'device') {
+        const cls = p.blocked ? 'over' : p.fill > 0.9 ? 'warn' : '';
+        meter = `<div class="meter ${cls}" role="img" aria-label="Card ${Math.round(p.fill * 100)}% full after Apply"><i style="width:${Math.min(100, p.fill * 100).toFixed(1)}%"></i></div>`;
+        l2 = p.blocked
+          ? `<span class="over">Doesn't fit: ${size(p.used)} needed on a ${size(o.capacity)} card. Untick ${size(-p.free)} to apply.</span>`
+          : `<span>Selected ${size(p.total, p.estimated)}</span><span>${size(p.free)} free after Apply</span><span>${size(o.capacity)} card · ${o.fs}</span>`;
+      }
+      if (others.length) l2 += `<span>Also changed: ${esc(words(others.map((x) => x.name)))} · <button type="button" class="link" data-act="applyall">Apply all</button></span>`;
+    }
+    const last = S.undo[S.undo.length - 1];
+    const canApply = p.any && !p.blocked && !S.applying;
+    const applyWhy = p.blocked ? ' title="The selection does not fit on the card"' : '';
+    el.bar.innerHTML = `<div class="state"><div class="l1">${l1}</div>${meter}${l2 ? `<div class="l2">${l2}</div>` : ''}</div>` +
+      `<div class="acts"><button type="button" data-act="undo"${last && !S.applying ? ` title="Undo: ${esc(last.label)}"` : ' disabled'}>Undo</button>` +
+      `<button type="button" class="primary" data-act="apply"${canApply ? '' : ' disabled'}${applyWhy}>Apply to ${esc(o.name)}</button></div>`;
+  }
+
+  function renderDrawer() {
+    if (S.drawer === null) { el.drawer.hidden = true; return; }
+    const g = S.byId.get(S.drawer), o = cur(), sys = SYS.get(g.sys), vi = picked(g), v = g.versions[vi];
+    const inc = eff(o, g);
+    const ext = sys.disc ? (g.discs > 1 ? 'm3u' : 'chd') : 'zip';
+    const outPath = `${o.root}\\${o.kind === 'retroarch' ? sys.name : sys.folder}\\${g.name}.${ext}`;
+    const src = `D:\\Roms\\${sys.short}\\${vTitle(g, v)}${g.discs > 1 ? ' (Disc 1)' : ''}.${sys.disc ? (g.est ? '7z' : 'chd') : 'zip'}` +
+      (g.discs > 1 ? ` and ${plural(g.discs - 1, 'more disc')}` : '');
+    const ident = v.conf === 'ok' ? `Verified against the ${sys.disc ? 'Redump' : 'No-Intro'} DAT` : v.conf === 'name' ? 'By file name; no DAT match' : 'Not identified: no DAT match and no recognizable name';
+    const grouped = g.unk ? 'Not grouped' : v.conf === 'ok' && !sys.disc ? 'By the DAT’s parent/clone list' : 'By title (heuristic)';
+    let verWhy = g.override === null ? reason(g) : `Your choice. The automatic pick would be ${vTitle(g, g.versions[g.auto])}.`;
+    if (g.discs > 1) verWhy += ' Every disc uses this version.';
+    const others = S.outputs.filter((x) => x !== o);
+    keepFocus(el.drawer, () => {
+      el.drawer.innerHTML = `
+        <div class="dh">
+          <div><h3>${esc(g.name)}</h3><p>${esc(sys.name)}${g.discs > 1 ? ` · ${g.discs} discs` : ''}${g.isNew ? ' · new' : ''}</p></div>
+          <button type="button" class="x" data-act="close" data-k="close" aria-label="Close details">×</button>
+        </div>
+        <section>
+          <h4>On ${esc(o.name)}</h4>
+          <label class="tick"><input type="checkbox" data-act="inc" data-k="inc"${inc ? ' checked' : ''}> Include this game</label>
+          <p class="why">${esc(why(o, g))}</p>
+          ${o.picks.has(g.id) ? `<button type="button" class="link" data-act="follow" data-k="follow">Follow the ${esc(sys.short)} setting instead</button>` : ''}
+        </section>
+        <section>
+          <h4>Other outputs</h4>
+          ${others.map((x) => `<label class="tick"><input type="checkbox" data-act="inc2" data-out="${x.id}" data-k="inc2:${x.id}"${eff(x, g) ? ' checked' : ''}> ${esc(x.name)} <small>${esc(whyShort(x, g))}</small></label>`).join('')}
+        </section>
+        <section>
+          <h4>Version <span>· used on every output</span></h4>
+          <div class="vers" role="radiogroup" aria-label="Version">
+            ${g.versions.map((x, i) => `<label class="ver${i === vi ? ' on' : ''}"><input type="radio" name="ver" value="${i}" data-act="ver" data-k="ver:${i}"${i === vi ? ' checked' : ''}><span class="vt">${esc(vTitle(g, x))}</span><span class="vm">${esc(CONF[x.conf][2])} · ${size(x.size * g.discs, g.est)}${i === g.auto ? ' · <b>automatic pick</b>' : ''}</span></label>`).join('')}
+          </div>
+          <p class="why">${esc(verWhy)}</p>
+          ${g.override !== null ? '<button type="button" class="link" data-act="auto" data-k="auto">Back to automatic</button>' : ''}
+        </section>
+        <section>
+          <h4>Details</h4>
+          <dl class="facts">
+            <dt>Identified</dt><dd>${esc(ident)}</dd>
+            <dt>Grouped</dt><dd>${esc(grouped)}</dd>
+            <dt>Source</dt><dd class="path">${esc(src)}</dd>
+            <dt>On ${esc(o.name)}</dt><dd${inc ? ' class="path"' : ''}>${inc ? esc(outPath) : 'Not on this output'}</dd>
+          </dl>
+        </section>`;
+    });
+    el.drawer.hidden = false;
+  }
+
+  let toastTimer;
+  function toast(msg, withUndo, action) {
+    el.toast.innerHTML = `<span>${esc(msg)}</span><span class="acts">` +
+      (action ? `<button type="button" data-act="toastaction">${esc(action.label)}</button>` : '') +
+      (withUndo ? '<button type="button" data-act="undo">Undo</button>' : '') + '</span>';
+    el.toast.hidden = false;
+    toastAction = action ? action.run : null;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.toast.hidden = true; }, withUndo || action ? 8000 : 4500);
+  }
+  let toastAction = null;
+
+  // ---------- actions ----------
+  function remember(label, o) {
+    const s = { all: o.all, systems: new Map(o.systems), picks: new Map(o.picks) };
+    S.undo.push({ label, run: () => { o.all = s.all; o.systems = s.systems; o.picks = s.picks; } });
+    if (S.undo.length > 50) S.undo.shift();
+  }
+  function undo() {
+    const u = S.undo.pop();
+    if (!u) return;
+    u.run();
+    toast(`Undone: ${u.label}.`);
+    touch();
+  }
+  function resetView() {
+    S.keep.clear(); S.active = -1; S.anchor = null;
+    el.vlist.scrollTop = 0;
+    touch();
+  }
+  function clearFilters() {
+    S.show = 'all'; S.several = S.choices = S.unverified = S.fresh = false;
+    S.query = ''; S.tokens = []; el.q.value = '';
+    resetView();
+  }
+  function toggleRow(i, range) {
+    const o = cur(), L = list().list, g = L[i];
+    if (!g) return;
+    const val = !eff(o, g);
+    let from = i;
+    if (range && S.anchor !== null) { const a = L.findIndex((x) => x.id === S.anchor); if (a >= 0) from = a; }
+    const span = L.slice(Math.min(from, i), Math.max(from, i) + 1);
+    const changed = span.filter((x) => eff(o, x) !== val).length;
+    const label = span.length > 1 ? `${val ? 'Included' : 'Left out'} ${plural(changed, 'game')}` : `${val ? 'Included' : 'Left out'} ${g.name}`;
+    remember(label, o);
+    for (const x of span) { setGame(o, x, val); if (S.show !== 'all') S.keep.add(x.id); }
+    S.anchor = g.id;
+    if (span.length > 1) toast(`${label} ${val ? 'in' : 'from'} ${o.name}.`, true);
+    touch();
+  }
+  function toggleShown() {
+    const o = cur(), L = list().list;
+    if (!L.length) return;
+    let n = 0;
+    for (const g of L) if (eff(o, g)) n++;
+    const val = n !== L.length;
+    const label = `${val ? 'Included' : 'Left out'} ${plural(val ? L.length - n : n, 'game')}`;
+    remember(label, o);
+    for (const g of L) setGame(o, g, val);
+    toast(`${label} ${val ? 'in' : 'from'} ${o.name}.`, true);
+    touch();
+  }
+  function toggleSystem(id) {
+    const o = cur(), s = SYS.get(id);
+    let t = 0, n = 0, mine = 0;
+    for (const g of S.games) if (g.sys === id) { t++; if (eff(o, g)) n++; if (o.picks.has(g.id)) mine++; }
+    const val = n !== t;
+    const label = val ? `Included all ${plural(t, s.short + ' game')}` : `Left out all ${s.short} games`;
+    remember(label, o);
+    if (val === o.all) o.systems.delete(id); else o.systems.set(id, val);
+    for (const gid of [...o.picks.keys()]) if (S.byId.get(gid).sys === id) o.picks.delete(gid);
+    toast(`${label} ${val ? 'in' : 'from'} ${o.name}${mine ? `, replacing ${plural(mine, 'tick')} of yours` : ''}. New ${s.short} games will ${val ? 'be added too' : 'stay out'}.`, true);
+    touch();
+  }
+  function toggleAll() {
+    const o = cur();
+    let n = 0;
+    for (const g of S.games) if (eff(o, g)) n++;
+    const val = n !== S.games.length;
+    const mine = o.picks.size + o.systems.size;
+    const label = val ? 'Included every game' : 'Left out every game';
+    remember(label, o);
+    o.all = val; o.systems = new Map(); o.picks = new Map();
+    toast(`${label} ${val ? 'in' : 'from'} ${o.name}${mine ? `, replacing ${plural(mine, 'choice')} of yours` : ''}.`, true);
+    touch();
+  }
+  function setVersion(g, i) {
+    const before = g.override, next = i === g.auto ? null : i;
+    if (before === next) return;
+    S.undo.push({ label: `Changed the version of ${g.name}`, run: () => { g.override = before; } });
+    g.override = next;
+    const n = S.outputs.filter((o) => eff(o, g)).length;
+    const what = next === null ? `${g.name} is back to the automatic version.` : `${g.name} will use ${vTitle(g, g.versions[i])}.`;
+    toast(what + (n ? ` Apply to update ${plural(n, 'output')}.` : ''), true);
+    touch();
+  }
+  function openDrawer(id) { S.drawer = id; touch(); }
+  function closeDrawer() { S.drawer = null; touch(); el.vlist.focus({ preventScroll: true }); }
+
+  function apply(outs) {
+    if (S.applying) return;
+    const jobs = outs.filter((o) => { const p = pending(o); return p.any && !p.blocked; });
+    if (!jobs.length) return;
+    const target = new Map(jobs.map((o) => [o, included(o)]));
+    S.applying = { names: jobs.map((o) => o.name), p: 0 };
+    const t0 = performance.now(), dur = reduced ? 0 : 900 + 500 * jobs.length;
+    const step = (t) => {
+      S.applying.p = dur ? Math.min(1, (t - t0) / dur) : 1;
+      if (S.applying.p < 1) { renderBar(); requestAnimationFrame(step); return; }
+      for (const o of jobs) o.applied = target.get(o);
+      S.applying = null;
+      toast(`${words(jobs.map((o) => o.name))} ${jobs.length > 1 ? 'are' : 'is'} up to date.`);
+      touch();
+    };
+    renderBar();
+    requestAnimationFrame(step);
+  }
+
+  function simulate() {
+    S.batches++;
+    const added = [];
+    for (const [id, n] of [['gba', 2], ['snes', 2], ['psx', 1]]) {
+      const sys = SYS.get(id);
+      const used = new Set(S.games.filter((g) => g.sys === id).map((g) => g.name));
+      for (let k = 0; k < n; k++) {
+        let name;
+        do { name = invent(); } while (used.has(name));
+        used.add(name);
+        const g = makeGame(sys, name, 1, false, false, true);
+        add(g);
+        added.push(g);
+      }
+    }
+    const per = S.outputs.map((o) => `${o.name} takes ${added.filter((g) => eff(o, g)).length}`);
+    toast(`Sync found 5 new games (2 GBA, 2 SNES, 1 PS1). ${per.join(', ')}.`, false, {
+      label: 'Show them',
+      run: () => { S.sysFilter.clear(); S.fresh = true; resetView(); },
+    });
+    touch();
+  }
+
+  // ---------- events ----------
+  function onListKey(e) {
+    const L = list().list;
+    if (!L.length) return;
+    const page = Math.max(1, Math.floor(el.vlist.clientHeight / ROW) - 1);
+    let i = S.active;
+    switch (e.key) {
+      case 'ArrowDown': i = Math.min(L.length - 1, i + 1); break;
+      case 'ArrowUp': i = Math.max(0, i - 1); break;
+      case 'PageDown': i = Math.min(L.length - 1, i + page); break;
+      case 'PageUp': i = Math.max(0, i - page); break;
+      case 'Home': i = 0; break;
+      case 'End': i = L.length - 1; break;
+      case ' ': e.preventDefault(); if (i >= 0) toggleRow(i, e.shiftKey); return;
+      case 'Enter': if (i >= 0) openDrawer(L[i].id); return;
+      default: return;
+    }
+    e.preventDefault();
+    S.active = i;
+    const top = i * ROW, vt = el.vlist.scrollTop, vh = el.vlist.clientHeight;
+    if (top < vt) el.vlist.scrollTop = top;
+    else if (top + ROW > vt + vh) el.vlist.scrollTop = top + ROW - vh;
+    if (S.drawer !== null) { S.drawer = L[i].id; renderDrawer(); }
+    renderRows();
+  }
+  function onGlobalKey(e) {
+    const t = e.target;
+    const typing = t && t.matches && t.matches('input[type="search"], input[type="text"], select, textarea');
+    if (e.key === '/' && !typing) { e.preventDefault(); el.q.focus(); el.q.select(); }
+    else if (e.key === 'Escape') {
+      if (S.drawer !== null) closeDrawer();
+      else if (t === el.q && el.q.value) { el.q.value = ''; S.query = ''; S.tokens = []; resetView(); }
+    }
+  }
+
+  function wire() {
+    el.out.innerHTML = S.outputs.map((o) => `<option value="${o.id}">${esc(o.name)}</option>`).join('');
+    el.out.addEventListener('change', () => { S.cur = el.out.value; S.keep.clear(); S.anchor = null; touch(); });
+    el.rail.addEventListener('click', (e) => {
+      const box = e.target.closest('[data-box]');
+      if (box) { if (box.dataset.box === '*') toggleAll(); else toggleSystem(box.dataset.box); return; }
+      const nm = e.target.closest('[data-nm]');
+      if (!nm) return;
+      const id = nm.dataset.nm;
+      if (id === '*') S.sysFilter.clear();
+      else if (e.ctrlKey || e.metaKey) { if (S.sysFilter.has(id)) S.sysFilter.delete(id); else S.sysFilter.add(id); }
+      else S.sysFilter = new Set([id]);
+      resetView();
+    });
+    let qt;
+    el.q.addEventListener('input', () => {
+      clearTimeout(qt);
+      qt = setTimeout(() => { S.query = el.q.value; S.tokens = norm(el.q.value).split(' ').filter(Boolean); resetView(); }, 120);
+    });
+    document.querySelectorAll('[data-show]').forEach((b) => b.addEventListener('click', () => { S.show = b.dataset.show; resetView(); }));
+    document.querySelectorAll('[data-flag]').forEach((b) => b.addEventListener('click', () => { S[b.dataset.flag] = !S[b.dataset.flag]; resetView(); }));
+    el.clear.addEventListener('click', clearFilters);
+    el.allshown.addEventListener('click', toggleShown);
+    document.querySelectorAll('[data-sort]').forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.sort;
+      S.sort = S.sort.key === k ? { key: k, dir: -S.sort.dir } : { key: k, dir: k === 'size' ? -1 : 1 };
+      touch();
+    }));
+    el.vrows.addEventListener('click', (e) => {
+      const row = e.target.closest('.row');
+      if (!row) return;
+      const i = +row.dataset.i;
+      S.active = i;
+      if (e.target.closest('input')) toggleRow(i, e.shiftKey);
+      else openDrawer(list().list[i].id);
+      el.vlist.focus({ preventScroll: true });
+    });
+    let queued = false;
+    el.vlist.addEventListener('scroll', () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => { queued = false; renderRows(); });
+    });
+    el.vlist.addEventListener('keydown', onListKey);
+    document.addEventListener('keydown', onGlobalKey);
+    el.listarea.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-act="allsys"], [data-act="clear"]');
+      if (!a || el.drawer.contains(a)) return;
+      if (a.dataset.act === 'allsys') { S.sysFilter.clear(); resetView(); } else clearFilters();
+    });
+    el.drawer.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-act]');
+      if (!a) return;
+      const g = S.byId.get(S.drawer), o = cur();
+      if (a.dataset.act === 'close') closeDrawer();
+      else if (a.dataset.act === 'follow') { remember(`Followed the ${SYS.get(g.sys).short} setting for ${g.name}`, o); o.picks.delete(g.id); touch(); }
+      else if (a.dataset.act === 'auto') setVersion(g, g.auto);
+    });
+    el.drawer.addEventListener('change', (e) => {
+      const a = e.target.closest('[data-act]');
+      if (!a) return;
+      const g = S.byId.get(S.drawer);
+      if (a.dataset.act === 'inc' || a.dataset.act === 'inc2') {
+        const o = a.dataset.act === 'inc' ? cur() : outById(a.dataset.out);
+        remember(`${a.checked ? 'Included' : 'Left out'} ${g.name}${o === cur() ? '' : ' on ' + o.name}`, o);
+        setGame(o, g, a.checked);
+        touch();
+      } else if (a.dataset.act === 'ver') setVersion(g, +a.value);
+    });
+    el.bar.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-act]');
+      if (!a) return;
+      if (a.dataset.act === 'undo') undo();
+      else if (a.dataset.act === 'apply') apply([cur()]);
+      else if (a.dataset.act === 'applyall') apply(S.outputs);
+    });
+    el.toast.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-act]');
+      if (!a) return;
+      el.toast.hidden = true;
+      if (a.dataset.act === 'undo') undo();
+      else if (a.dataset.act === 'toastaction' && toastAction) toastAction();
+    });
+    document.querySelectorAll('[data-nav]').forEach((b) => b.addEventListener('click', () => toast(`${b.dataset.nav} isn't part of this mockup; only the Games screen is.`)));
+    el.simulate.addEventListener('click', simulate);
+    el.reset.addEventListener('click', () => {
+      build();
+      el.q.value = '';
+      el.vlist.scrollTop = 0;
+      el.toast.hidden = true;
+      touch();
+    });
+    window.addEventListener('resize', renderRows);
+  }
+
+  for (const id of ['out', 'where', 'libsum', 'rail', 'rule', 'listarea', 'q', 'clear', 'freshchip', 'allshown', 'shown', 'vlist', 'vspacer', 'vrows', 'empty', 'drawer', 'toast', 'bar', 'simulate', 'reset']) {
+    el[id] = document.getElementById(id);
+  }
+  build();
+  wire();
+  touch();
+})();
+</script>
