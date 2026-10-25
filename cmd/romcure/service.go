@@ -190,8 +190,8 @@ func (s *Service) RemoveSource(id int64) error { return s.core.RemoveSource(id) 
 
 // AddProfile adds an output; startEmpty makes it take no games until they are
 // ticked (the right start for an SD card).
-func (s *Service) AddProfile(name, kind, outputRoot string, systems []string, startEmpty bool) error {
-	_, err := s.core.AddProfile(store.Profile{Name: name, Kind: kind, OutputRoot: outputRoot, Systems: systems, StartEmpty: startEmpty})
+func (s *Service) AddProfile(name, kind, outputRoot string, systems []string, startEmpty bool, retroarchConfig string) error {
+	_, err := s.core.AddProfile(store.Profile{Name: name, Kind: kind, OutputRoot: outputRoot, Systems: systems, StartEmpty: startEmpty, RetroArchConfig: retroarchConfig})
 	return err
 }
 
@@ -504,4 +504,30 @@ func (s *Service) Licenses() []LicenseInfo {
 func (s *Service) LicenseText(name string) string {
 	e, _ := notices.Find(name)
 	return e.Text
+}
+
+// RetroArchInstalls lists the RetroArch configurations found on this computer,
+// the one that is open (or used last) first.
+func (s *Service) RetroArchInstalls() []discover.RetroArchInstall { return discover.RetroArchInstalls() }
+
+// PickRetroArch opens a native chooser for RetroArch's retroarch.cfg or program
+// and returns that install; nil means cancelled.
+func (s *Service) PickRetroArch() (*discover.RetroArchInstall, error) {
+	path, err := application.Get().Dialog.OpenFile().
+		CanChooseFiles(true).CanChooseDirectories(false).
+		AddFilter("RetroArch (retroarch.cfg, retroarch.exe)", "*.cfg;*.exe").
+		SetTitle("Choose retroarch.cfg or retroarch.exe").PromptForSingleSelection()
+	if err != nil || path == "" {
+		return nil, err
+	}
+	in, err := discover.RetroArchFromChoice(path)
+	if err != nil {
+		return nil, err
+	}
+	return &in, nil
+}
+
+// SetRetroArchConfig chooses the RetroArch an existing RetroArch output is for.
+func (s *Service) SetRetroArchConfig(id int64, path string) error {
+	return s.core.SetRetroArchConfig(id, path)
 }

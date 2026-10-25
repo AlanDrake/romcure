@@ -4,11 +4,24 @@
   import type {OutputProblem, OutputSummary} from '../../bindings/romcure/internal/app/models';
   import {app, refresh, fail, ok, start} from '../lib/state.svelte';
   import {num, plural, size} from '../lib/games';
+  import RetroArchPicker from '../lib/RetroArchPicker.svelte';
 
   let pName = $state('');
   let pKind = $state('retroarch');
   let pFolder = $state('');
   let pStart = $state('all');
+  let pConfig = $state('');
+  // The RetroArch an output is for: chosen when adding, or changed later on its card.
+  let raEditing: number | null = $state(null);
+  let raConfig = $state('');
+  async function saveRetroArch(id: number, config: string) {
+    try {
+      await Service.SetRetroArchConfig(id, config);
+      await refresh();
+    } catch (e) {
+      fail(e);
+    }
+  }
 
   const kinds: {id: string; label: string; hint: string}[] = [
     {id: 'retroarch', label: 'RetroArch', hint: 'Links + playlists (.lpl) for RetroArch'},
@@ -53,7 +66,7 @@
   }
   async function addProfile() {
     try {
-      await Service.AddProfile(pName, pKind, pFolder, null, pStart === 'none');
+      await Service.AddProfile(pName, pKind, pFolder, null, pStart === 'none', pKind === 'retroarch' ? pConfig : '');
       ok('Added output "' + pName + '"');
       pName = '';
       pFolder = '';
@@ -171,6 +184,18 @@
                 <span class="muted"> · needs {size(s?.Pending.Bytes ?? 0, s?.Pending.Estimated)} · {size(dev.FreeBytes)} free · {dev.FSType}</span>
               {/if}
             </p>
+            {#if p.Kind === 'retroarch'}
+              <p class="state">
+                <span class="muted">RetroArch:</span>
+                {#if p.RetroArchConfig}<span class="path">{p.RetroArchConfig}</span>{:else}none chosen yet{/if}
+                <button class="link" onclick={() => { raEditing = raEditing === p.ID ? null : p.ID; raConfig = p.RetroArchConfig; }}>
+                  {raEditing === p.ID ? 'Close' : p.RetroArchConfig ? 'Change' : 'Choose'}
+                </button>
+              </p>
+              {#if raEditing === p.ID}
+                <RetroArchPicker bind:value={raConfig} onpick={(c) => saveRetroArch(p.ID, c)} />
+              {/if}
+            {/if}
             {#each dev?.Blockers ?? [] as b}<p class="state bad">{b}</p>{/each}
             {#if dev?.Oversize?.length}<p class="state bad">{plural(dev.Oversize.length, 'game')} over the {size(dev.MaxFileBytes)} file limit will be skipped.</p>{/if}
 
@@ -252,6 +277,7 @@
         {#each kinds as k}<option value={k.id}>{k.label}</option>{/each}
       </select>
       <span class="muted">{kinds.find((k) => k.id === pKind)?.hint}</span>
+      {#if pKind === 'retroarch'}<RetroArchPicker bind:value={pConfig} />{/if}
       <div class="form">
         <input class="grow" placeholder="Output folder path" aria-label="Output folder path" bind:value={pFolder} />
         <button onclick={pickOutput}>Browse…</button>

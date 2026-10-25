@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"romcure/internal/catalog"
+	"romcure/internal/discover"
 	"romcure/internal/elevate"
 	"romcure/internal/fsinfo"
 	"romcure/internal/library"
@@ -215,7 +216,42 @@ func (a *App) AddProfile(p store.Profile) (store.Profile, error) {
 		return store.Profile{}, err
 	}
 	p.OutputRoot = abs
+	if p.RetroArchConfig, err = checkRetroArchConfig(p.Kind, p.RetroArchConfig); err != nil {
+		return store.Profile{}, err
+	}
 	return a.DB.AddProfile(p)
+}
+
+// checkRetroArchConfig returns the retroarch.cfg to keep for an output: "" for
+// any kind but RetroArch, otherwise the path, which must be a readable config.
+func checkRetroArchConfig(kind, path string) (string, error) {
+	if kind != "retroarch" || strings.TrimSpace(path) == "" {
+		return "", nil
+	}
+	in, err := discover.ParseRetroArchConfig(path)
+	if err != nil {
+		return "", fmt.Errorf("RetroArch's config can't be read: %w", err)
+	}
+	return in.Config, nil
+}
+
+// SetRetroArchConfig chooses the RetroArch an existing RetroArch output is
+// for; "" clears the choice.
+func (a *App) SetRetroArchConfig(id int64, path string) error {
+	profs, err := a.DB.Profiles()
+	if err != nil {
+		return err
+	}
+	for _, p := range profs {
+		if p.ID == id {
+			path, err = checkRetroArchConfig(p.Kind, path)
+			if err != nil {
+				return err
+			}
+			return a.DB.SetRetroArchConfig(id, path)
+		}
+	}
+	return fmt.Errorf("output %d not found", id)
 }
 
 // RemoveProfile deletes an output. With deleteLinks it first removes the

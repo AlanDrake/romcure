@@ -2,6 +2,7 @@
   import * as Service from '../../bindings/romcure/cmd/romcure/service';
   import type {Candidate, Suggestion} from '../../bindings/romcure/internal/discover/models';
   import {app, refresh, fail, ok, start, relaunchElevated, keepCopies, message} from '../lib/state.svelte';
+  import RetroArchPicker from '../lib/RetroArchPicker.svelte';
   import {num, plural} from '../lib/games';
 
   const STEPS = ['Welcome', 'Your games', 'Versions', 'Outputs', 'Links', 'Storage', 'Databases', 'Finish'];
@@ -126,6 +127,7 @@
   let oKind = $state('retroarch');
   let oFolder = $state('');
   let oStart = $state('all');
+  let oConfig = $state('');
   let outputAdded = $state(false);
   const kinds = [
     ['retroarch', 'RetroArch'], ['esde', 'ES-DE'], ['retrodeck', 'RetroDECK'], ['batocera', 'Batocera'],
@@ -166,7 +168,7 @@
       return false;
     }
     try {
-      await Service.AddProfile(oName.trim(), oKind, oFolder.trim(), null, oStart === 'none');
+      await Service.AddProfile(oName.trim(), oKind, oFolder.trim(), null, oStart === 'none', oKind === 'retroarch' ? oConfig : '');
       outputAdded = true;
       await refresh();
       return true;
@@ -305,6 +307,7 @@
             <input class="grow" placeholder="Output folder" aria-label="Output folder" bind:value={oFolder} />
             <button onclick={browseOutput}>Browse…</button>
           </div>
+          {#if oKind === 'retroarch'}<RetroArchPicker bind:value={oConfig} />{/if}
           <label>
             Start with
             <select bind:value={oStart} aria-label="Start with">

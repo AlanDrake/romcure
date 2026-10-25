@@ -500,3 +500,18 @@ test('a finished CHD check links to its results, right under the button', async 
   await source.getByRole('button', {name: 'Remove'}).click();
   await expect(source).toHaveCount(0);
 });
+
+// ---- Choosing which RetroArch an output is for
+
+test('a RetroArch output asks which RetroArch it is for, other kinds do not', async ({page}) => {
+  await page.goto('/');
+  await page.getByRole('button', {name: 'Outputs', exact: true}).click();
+  const picker = page.getByText('Which RetroArch is this output for?');
+  await expect(picker).toBeVisible();
+  await expect(page.getByRole('radio', {name: /Not now/})).toBeVisible();
+  await expect(page.getByRole('button', {name: 'Choose RetroArch…'})).toBeVisible();
+  await picker.scrollIntoViewIfNeeded();
+  await page.screenshot({path: 'test-results/retroarch-picker.png'});
+  await page.getByLabel('Kind of output').selectOption('esde');
+  await expect(picker).toHaveCount(0);
+});

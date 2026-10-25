@@ -2,6 +2,7 @@ package discover
 
 import (
 	"bufio"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -57,6 +58,27 @@ func ParseRetroArchConfig(path string) (RetroArchInstall, error) {
 	in.Playlists = resolveRetroArchDir(dir, playlists, "playlists")
 	in.Cores = resolveRetroArchDir(dir, cores, "cores")
 	return in, nil
+}
+
+// RetroArchFromChoice turns what the user picked into an install: a
+// retroarch.cfg, or RetroArch's program (retroarch.exe, a RetroArch.app, or the
+// folder), whose config is looked for beside it, then in the usual places.
+func RetroArchFromChoice(path string) (RetroArchInstall, error) {
+	base := strings.ToLower(filepath.Base(path))
+	if strings.HasSuffix(base, ".cfg") {
+		return ParseRetroArchConfig(path)
+	}
+	dir := path
+	if st, err := os.Stat(path); err == nil && !st.IsDir() {
+		dir = filepath.Dir(path)
+	}
+	home, _ := os.UserHomeDir()
+	for _, d := range append([]string{dir}, retroArchDirs(home)...) {
+		if in, err := ParseRetroArchConfig(filepath.Join(d, "retroarch.cfg")); err == nil {
+			return in, nil
+		}
+	}
+	return RetroArchInstall{}, errors.New("there is no retroarch.cfg beside it. Start RetroArch once so it creates one, then choose again")
 }
 
 // resolveRetroArchDir turns a config value into a path: "" and "default" are

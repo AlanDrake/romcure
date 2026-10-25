@@ -212,3 +212,49 @@ func TestAfterApplyKeepsTheSyncResultsAndReplacesTheUpdatedOutputs(t *testing.T)
 		t.Errorf("without a sync: %+v", got)
 	}
 }
+
+func TestAnOutputKeepsTheRetroArchConfigItWasGiven(t *testing.T) {
+	a := newApp(t)
+	cfg := filepath.Join(t.TempDir(), "RA", "retroarch.cfg")
+	if err := os.MkdirAll(filepath.Dir(cfg), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cfg, []byte("playlist_directory = \"default\"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	ra, err := a.AddProfile(store.Profile{Name: "RA", Kind: "retroarch", OutputRoot: filepath.Join(t.TempDir(), "ra"), RetroArchConfig: cfg})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Only a RetroArch output keeps it.
+	raw, err := a.AddProfile(store.Profile{Name: "Raw", Kind: "raw", OutputRoot: filepath.Join(t.TempDir(), "raw"), RetroArchConfig: cfg})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.AddProfile(store.Profile{Name: "Bad", Kind: "retroarch", OutputRoot: filepath.Join(t.TempDir(), "bad"), RetroArchConfig: cfg + ".missing"}); err == nil {
+		t.Error("a config that can't be read should be refused")
+	}
+	got := func() map[int64]string {
+		profs, err := a.DB.Profiles()
+		if err != nil {
+			t.Fatal(err)
+		}
+		m := map[int64]string{}
+		for _, p := range profs {
+			m[p.ID] = p.RetroArchConfig
+		}
+		return m
+	}
+	if m := got(); m[ra.ID] != cfg || m[raw.ID] != "" {
+		t.Fatalf("kept %v", m)
+	}
+	if err := a.SetRetroArchConfig(ra.ID, ""); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.SetRetroArchConfig(ra.ID, cfg); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.SetRetroArchConfig(raw.ID, cfg); err != nil || got()[raw.ID] != "" {
+		t.Errorf("a non-RetroArch output should ignore the choice: %v", err)
+	}
+}

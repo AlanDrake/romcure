@@ -84,3 +84,25 @@ func TestIsRetroArchExe(t *testing.T) {
 		}
 	}
 }
+
+func TestRetroArchFromChoiceAcceptsTheConfigOrTheProgram(t *testing.T) {
+	// Keep the usual places from finding a real install on this machine.
+	empty := t.TempDir()
+	for _, k := range []string{"HOME", "USERPROFILE", "APPDATA", "ProgramFiles", "ProgramFiles(x86)"} {
+		t.Setenv(k, empty)
+	}
+	dir := filepath.Join(t.TempDir(), "RA")
+	cfg := writeCfg(t, dir, "")
+	touch(t, filepath.Join(dir, "retroarch.exe"))
+	for _, p := range []string{cfg, filepath.Join(dir, "retroarch.exe"), dir} {
+		in, err := RetroArchFromChoice(p)
+		if err != nil || in.Config != cfg {
+			t.Errorf("RetroArchFromChoice(%q) = %+v, %v", p, in, err)
+		}
+	}
+	bare := filepath.Join(t.TempDir(), "bare")
+	touch(t, filepath.Join(bare, "retroarch.exe"))
+	if _, err := RetroArchFromChoice(filepath.Join(bare, "retroarch.exe")); err == nil {
+		t.Error("a program with no retroarch.cfg beside it should be refused")
+	}
+}

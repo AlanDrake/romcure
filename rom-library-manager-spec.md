@@ -599,8 +599,12 @@ RetroArch on a handheld will read.
       config from the usual places and rank by last change, with a running RetroArch
       first (process snapshot on Windows, `/proc` on Linux, `ps` on macOS); unit-tested
       on synthetic configs, vet-checked for Linux and macOS. Not done: the registry and
-      shortcut lookups, Browse, the setup and output UI. The process lookups have not
-      been run against a real RetroArch, and nothing has been read from a real install.)_
+      shortcut lookups. Browse and the choice are in: a picker in setup and in the Add
+      output form, and on each RetroArch output's card, keeps the chosen
+      `retroarch.cfg` per output (migration 0017); Go tests and one e2e test cover it,
+      and a screenshot shows the form. The choice is stored but nothing reads it yet:
+      the playlist writer below is not built. The process lookups have not been run
+      against a real RetroArch, and nothing has been read from a real install.)_
 - [ ] Playlist writer for the chosen option: no write when nothing changed; our entries
       removed when an output or system is removed
 - [ ] Default core per system when installed
