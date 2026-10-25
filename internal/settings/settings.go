@@ -49,6 +49,10 @@ type Settings struct {
 	AllowHardlink bool      `json:"allow_hardlink"`
 	// RegionPreset is a rules.Presets id ("usa", "europe", ...).
 	RegionPreset string `json:"region_preset"`
+	// NoDefaultCores turns off setting a default core on the RetroArch playlists
+	// RomCure writes (a core already set in a playlist is never changed). Off by
+	// the zero value, so older settings files keep the feature on.
+	NoDefaultCores bool `json:"no_default_cores"`
 	// Onboarded is set once the first-run setup was finished or skipped.
 	Onboarded bool `json:"onboarded"`
 }

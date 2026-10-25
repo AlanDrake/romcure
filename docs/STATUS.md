@@ -166,9 +166,11 @@ The owner's review of 2026-10-25 added milestones M7–M11 to the spec.
    (running process, usual places) and chosen per output, with a picker in
    setup, in the Add output form and on each RetroArch output's card. The
    playlist writer is in: Apply merges into the playlist folder of the chosen
-   RetroArch and refuses while RetroArch is open. Not yet run against a real
-   RetroArch (no game launched from it). Open: a default core per system;
-   dropping a system's entries when only that system is removed.
+   RetroArch and refuses while RetroArch is open. The owner ran it on their real
+   RetroArch: systems appeared, games were added and removed, their own playlists
+   kept working. A default core per system (option in Settings) is in and
+   unlaunched. Open: dropping a system's entries when only that system is
+   removed.
 4. M9: one systems registry, then every system with a DAT source.
 5. M10: arcade (FBNeo, MAME). Builds on M9.
 6. A first release: run a packaged build on a clean machine, then push a v* tag. Then

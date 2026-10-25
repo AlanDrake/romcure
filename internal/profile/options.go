@@ -50,6 +50,9 @@ type Options struct {
 	// output's entries are merged into the playlists there (see mergePlaylist).
 	// Empty = only the playlist inside the output.
 	PlaylistDir string
+	// DefaultCorePath and DefaultCoreName, with PlaylistDir, are the core a playlist
+	// without a default core gets (a core already set there is kept).
+	DefaultCorePath, DefaultCoreName string
 	// Parallelism is how many disc conversions may run at once (below 2 =
 	// one at a time). Each needs its own scratch space.
 	Parallelism int

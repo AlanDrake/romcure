@@ -37,12 +37,12 @@ func inside(itemPath, folder string) bool {
 // of this output (those inside outputRoot) and leaving all others alone. It
 // returns whether the file changed: nothing is written when the result is the
 // same bytes, and a playlist that does not exist is not created for no items.
-func mergePlaylist(path, outputRoot string, ours []lplItem) (bool, error) {
+func mergePlaylist(path, outputRoot string, ours []lplItem, core defaultCore) (bool, error) {
 	old, err := os.ReadFile(path)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return false, err
 	}
-	next, err := mergePlaylistBytes(old, outputRoot, ours)
+	next, err := mergePlaylistBytes(old, outputRoot, ours, core)
 	if err != nil {
 		return false, fmt.Errorf("playlist %s: %w", path, err)
 	}
@@ -59,7 +59,7 @@ func removeFromPlaylists(dir, outputRoot string) (int, error) {
 	files, _ := filepath.Glob(filepath.Join(dir, "*.lpl"))
 	changed := 0
 	for _, f := range files {
-		ok, err := mergePlaylist(f, outputRoot, nil)
+		ok, err := mergePlaylist(f, outputRoot, nil, defaultCore{})
 		if err != nil {
 			return changed, err
 		}
@@ -72,7 +72,7 @@ func removeFromPlaylists(dir, outputRoot string) (int, error) {
 
 // mergePlaylistBytes is the pure part of mergePlaylist. A nil result means
 // there is nothing to write.
-func mergePlaylistBytes(old []byte, outputRoot string, ours []lplItem) ([]byte, error) {
+func mergePlaylistBytes(old []byte, outputRoot string, ours []lplItem, core defaultCore) ([]byte, error) {
 	header := map[string]json.RawMessage{}
 	var kept []json.RawMessage
 	if len(bytes.TrimSpace(old)) > 0 {
@@ -123,8 +123,29 @@ func mergePlaylistBytes(old []byte, outputRoot string, ours []lplItem) ([]byte, 
 		return nil, err
 	}
 	header["items"] = raw
+	core.fillIn(header)
 	// json.Marshal sorts a map's keys, so the output is the same every time.
 	return json.MarshalIndent(header, "", "  ")
+}
+
+// defaultCore is the core a new playlist should open its games with. The zero
+// value means none.
+type defaultCore struct{ Path, Name string }
+
+// fillIn sets the playlist's default core, but only where it has none: a core
+// the user picked in RetroArch is never replaced.
+func (c defaultCore) fillIn(header map[string]json.RawMessage) {
+	if c.Path == "" {
+		return
+	}
+	var cur string
+	_ = json.Unmarshal(header["default_core_path"], &cur)
+	if cur != "" && cur != "DETECT" {
+		return
+	}
+	path, _ := json.Marshal(c.Path)
+	name, _ := json.Marshal(c.Name)
+	header["default_core_path"], header["default_core_name"] = path, name
 }
 
 // writeFileAtomic replaces path through a temporary file beside it, so a

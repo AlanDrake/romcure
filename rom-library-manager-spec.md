@@ -615,7 +615,15 @@ RetroArch on a handheld will read.
       system that still has a source is not handled: its entries stay until the output
       is removed. Not run against a real RetroArch, so nobody has seen a game launch
       from these playlists.)_
-- [ ] Default core per system when installed
+- [x] Default core per system when installed
+      _(`discover/cores.go`: a table of preferred cores per system, the first one found in the
+      config's cores folder wins, named from its `.info` file. It is set as the playlist's
+      default core only where the playlist has none (empty or "DETECT"); a core the user
+      picked is never changed. A setting turns it off (Settings, "Set a default core on new
+      RetroArch playlists"). On the owner's real RetroArch the lookup picks mGBA, Gambatte,
+      Mesen, Snes9x, Genesis Plus GX, SwanStation, Mupen64Plus-Next and Beetle PCE FAST;
+      the owner has not yet launched a game from a playlist made this way. The table is
+      from memory of the libretro core names, so a wrong name just means no default.)_
 - [x] Apply checks whether RetroArch is running
       _(`discover.RetroArchOpen`: Apply and the removal refuse with a message while any
       RetroArch process is open. A Flatpak or Snap RetroArch is not seen on Linux.)_

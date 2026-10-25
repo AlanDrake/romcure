@@ -75,7 +75,8 @@ func GenerateRetroArch(db *store.DB, systemID string, opts Options) (Report, err
 	}
 
 	if opts.PlaylistDir != "" {
-		if _, err := mergePlaylist(filepath.Join(opts.PlaylistDir, dbName+".lpl"), opts.OutputRoot, items); err != nil {
+		if _, err := mergePlaylist(filepath.Join(opts.PlaylistDir, dbName+".lpl"), opts.OutputRoot, items,
+			defaultCore{opts.DefaultCorePath, opts.DefaultCoreName}); err != nil {
 			return report, err
 		}
 	}

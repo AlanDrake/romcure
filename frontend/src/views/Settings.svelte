@@ -77,6 +77,11 @@
       <span class="muted">Used while converting discs; Wii/GameCube images need about 10 GB free.</span>
     </label>
     <label class="check">
+      <input type="checkbox" checked={!st.Settings.no_default_cores} onchange={(e) => (st.Settings.no_default_cores = !e.currentTarget.checked)} />
+      Set a default core on new RetroArch playlists
+      <span class="muted">When RomCure creates a playlist for a system, it picks an installed core for it (for example mGBA for Game Boy Advance), so games open without asking. A core already set in a playlist is never changed.</span>
+    </label>
+    <label class="check">
       <input type="checkbox" bind:checked={st.Settings.allow_hardlink} />
       Allow hard links (advanced)
       <span class="muted">Only for outputs on the same drive as your games. Editing such a file edits the original.</span>
