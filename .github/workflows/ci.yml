@@ -6,7 +6,7 @@ on:
   pull_request:
 
 env:
-  GO_VERSION: "1.27.0"
+  GO_VERSION: "1.27.3"
   NODE_VERSION: "22.18.0"
   WAILS3_VERSION: "v3.0.0"
 
