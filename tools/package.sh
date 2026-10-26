@@ -49,6 +49,10 @@ cp tools/licenses/7zip-License.txt tools/licenses/LGPL-2.1.txt "$out/tools/" 2>/
       7zip)    echo "  7-Zip $v: https://github.com/ip7z/7zip/releases/tag/$v" ;;
     esac
   done
+  echo "The complete source of each, at these exact versions, is also attached to the"
+  echo "RomCure release this archive comes from: https://github.com/AlanDrake/romcure/releases"
+  echo "(Dolphin's without Externals/Qt and Externals/FFmpeg-bin, which hold prebuilt"
+  echo "Windows libraries that DolphinTool does not use)."
   echo "If you cannot find a source archive, ask at https://github.com/AlanDrake/romcure/issues."
 } > "$out/SOURCES.txt"
 

@@ -69,10 +69,25 @@ jobs:
             dist/*.tar.gz
           if-no-files-found: error
 
+  # The complete source of the GPL/LGPL programs the archives ship, at the
+  # pinned versions, attached to the release (spec §7).
+  sources:
+    name: tool sources
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch the pinned sources
+        run: bash tools/fetch-sources.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tool-sources
+          path: dist/sources/*
+          if-no-files-found: error
+
   release:
     name: publish release
     if: startsWith(github.ref, 'refs/tags/')
-    needs: package
+    needs: [package, sources]
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -86,8 +86,9 @@ push only when needed (CLAUDE.md).
 10. **A slow migration shows no window** while it runs, because the window
     appears only after the library opens.
 11. **libretro's No-Intro game names** drop some tags that stay in the ROM name
-    ("(Aftermarket) (Unl)"). No-Intro's terms on DAT use need checking before a
-    public release (spec §7).
+    ("(Aftermarket) (Unl)"). No-Intro publishes no terms for its DATs (checked
+    2026-10-26, spec §7); RomCure ships none and only downloads libretro's
+    copies on request. Asking No-Intro is the only way to be sure.
 12. **Wails template task `build:server` is broken** (it builds `.`). Use the
     command in CLAUDE.md.
 13. **Multi-disc games with no complete release:** a missing disc comes from
@@ -147,8 +148,11 @@ push only when needed (CLAUDE.md).
     publish no builds for them.
 
   `findTool` looks in `<exe>/tools`, then `tools/bin/<platform>`, then the PATH.
-- The GPL source offer (Help, the notices, `SOURCES.txt`) names the upstream
-  tag of each tool. Regenerate the notices with `go run ./tools/gen-notices`
+- The complete source of chdman (MAME), DolphinTool and 7-Zip at the pinned
+  versions is gathered by `tools/fetch-sources.sh` (pinned in
+  `tools/versions.txt`) and attached to every tagged release; Help, the
+  notices and `SOURCES.txt` say so and also name the upstream tags. The script
+  ran locally (159 MB, 64 MB, 1.5 MB); the release upload has not run yet. Regenerate the notices with `go run ./tools/gen-notices`
   after a dependency change. A test enforces this for Go; npm is not checked.
 - `tools/package.sh` and `.github/workflows/release.yml` build the Windows x64,
   Linux x64 and macOS arm64 archives. A manual run succeeded. Not verified:
@@ -179,6 +183,10 @@ The owner's review of 2026-10-25 added milestones M7–M11 to the spec.
    removed.
 4. M9: one systems registry, then every system with a DAT source.
 5. M10: arcade (FBNeo, MAME). Builds on M9.
-6. A first release: run a packaged build on a clean machine, then push a v* tag. Then
-   signing (needs the owner's certificates; spec M6), and No-Intro's terms and §7
-   reviewed before the release is public. The owner may want this earlier.
+6. A first public release (the owner's next goal). Done 2026-10-26: tool
+   sources attached to releases, No-Intro's terms looked up, Trademarks section
+   in the README. Open: **RomCure's own app icon** (it is still the Wails
+   template's "W" logo); the owner runs the packaged build on a clean PC and
+   makes the repo public (CI then runs again); the macOS archive is to be
+   dropped from releases until it can be signed (owner to confirm). Signing
+   needs the owner's certificates (spec M6).

@@ -96,3 +96,17 @@ RomCure is free software under the [GNU GPL v3](LICENSE). It runs chdman (MAME),
 DolphinTool (Dolphin) and 7-Zip as separate programs, unmodified official releases
 under their own licenses; see [`THIRD_PARTY_NOTICES.txt`](THIRD_PARTY_NOTICES.txt) or
 Help → Third-party licenses in the app. RomCure does not include or download games.
+Each GitHub release also carries the complete source of those three programs at the
+exact versions it ships (`tools/fetch-sources.sh`).
+
+Game databases (No-Intro, Redump, TOSEC, libretro-database) are not included: RomCure
+downloads them when you ask, from libretro-database and Redump, or reads DATs you
+import. They remain their authors' work.
+
+## Trademarks
+
+RetroArch, ES-DE, EmulationStation, Batocera, RetroBat, RetroDECK, MAME, Dolphin,
+PPSSPP, No-Intro, Redump, TOSEC, PlayStation, Nintendo, Sega and the other names of
+programs, projects and systems mentioned here and in the app belong to their owners.
+They are used only to say what RomCure works with. RomCure is not affiliated with or
+endorsed by any of them.

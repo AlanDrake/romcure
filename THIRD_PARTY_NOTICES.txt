@@ -4711,7 +4711,7 @@ chdman (MAME)
 Version: mame0289
 License: GPL-2.0-or-later
 Website: https://github.com/mamedev/mame
-GPL-2.0-or-later. Run only as a separate program; the app is not linked with it. The full text of the GNU GPL version 3 (a later version, which this license allows) follows; version 2 is at https://www.gnu.org/licenses/old-licenses/gpl-2.0.html. RomCure ships the project's own unmodified release; the source of that exact version is published by the project (the address and version are given here) and RomCure will provide it on request (see "Source code"). Most MAME files are individually BSD-3-Clause. Official release mame0289 (source: https://github.com/mamedev/mame/releases/tag/mame0289).
+GPL-2.0-or-later. Run only as a separate program; the app is not linked with it. The full text of the GNU GPL version 3 (a later version, which this license allows) follows; version 2 is at https://www.gnu.org/licenses/old-licenses/gpl-2.0.html. RomCure ships the project's own unmodified release. The complete source of that exact version is attached to every RomCure release (https://github.com/AlanDrake/romcure/releases), is published by the project (the address and version are given here), and RomCure will provide it on request (see "Source code"). Most MAME files are individually BSD-3-Clause. Official release mame0289 (source: https://github.com/mamedev/mame/releases/tag/mame0289).
 
 GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -5394,7 +5394,7 @@ dolphin-tool (Dolphin)
 Version: 2609
 License: GPL-2.0-or-later
 Website: https://github.com/dolphin-emu/dolphin
-GPL-2.0-or-later. Run only as a separate program; the app is not linked with it. The full text of the GNU GPL version 3 (a later version, which this license allows) follows; version 2 is at https://www.gnu.org/licenses/old-licenses/gpl-2.0.html. RomCure ships the project's own unmodified release; the source of that exact version is published by the project (the address and version are given here) and RomCure will provide it on request (see "Source code"). Official release 2609 (source: https://github.com/dolphin-emu/dolphin/releases/tag/2609, or dolphin-emu.org/download).
+GPL-2.0-or-later. Run only as a separate program; the app is not linked with it. The full text of the GNU GPL version 3 (a later version, which this license allows) follows; version 2 is at https://www.gnu.org/licenses/old-licenses/gpl-2.0.html. RomCure ships the project's own unmodified release. The complete source of that exact version is attached to every RomCure release (https://github.com/AlanDrake/romcure/releases), is published by the project (the address and version are given here), and RomCure will provide it on request (see "Source code"). Official release 2609 (source: https://github.com/dolphin-emu/dolphin/releases/tag/2609, or dolphin-emu.org/download).
 
 GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -6077,7 +6077,7 @@ Public License instead of this License.  But first, please read
 Version: 26.05
 License: LGPL-2.1-or-later (with the unRAR restriction)
 Website: https://www.7-zip.org
-Reads RAR archives. Run only as a separate program (7z.exe with 7z.dll, or 7zz); the app is not linked with it and does not change it. 7-Zip's own license notice comes first, then the GNU Lesser General Public License version 2.1. Its source is at https://github.com/ip7z/7zip (the release named in the version above) and https://www.7-zip.org, and RomCure will provide it on request (see "Source code"). The unRAR restriction means the RAR code may not be used to build a RAR-compatible archiver; RomCure only reads archives.
+Reads RAR archives. Run only as a separate program (7z.exe with 7z.dll, or 7zz); the app is not linked with it and does not change it. 7-Zip's own license notice comes first, then the GNU Lesser General Public License version 2.1. Its source is attached to every RomCure release (https://github.com/AlanDrake/romcure/releases), and is at https://github.com/ip7z/7zip (the release named in the version above) and https://www.7-zip.org, and RomCure will provide it on request (see "Source code"). The unRAR restriction means the RAR code may not be used to build a RAR-compatible archiver; RomCure only reads archives.
 
 7-Zip
   ~~~~~

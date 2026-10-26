@@ -214,7 +214,7 @@ func main() {
 	gplNote := "GPL-2.0-or-later. Run only as a separate program; the app is not linked with it. " +
 		"The full text of the GNU GPL version 3 (a later version, which this license allows) follows; " +
 		"version 2 is at https://www.gnu.org/licenses/old-licenses/gpl-2.0.html. " +
-		"RomCure ships the project's own unmodified release; the source of that exact version is published by the project (the address and version are given here) and RomCure will provide it on request (see \"Source code\")."
+		"RomCure ships the project's own unmodified release. The complete source of that exact version is attached to every RomCure release (https://github.com/AlanDrake/romcure/releases), is published by the project (the address and version are given here), and RomCure will provide it on request (see \"Source code\")."
 	entries = append(entries, entry{
 		Name: "chdman (MAME)", Version: toolPin("chdman"), License: "GPL-2.0-or-later", URL: "https://github.com/mamedev/mame", Kind: "tool",
 		Note: gplNote + " Most MAME files are individually BSD-3-Clause. Official release " + toolPin("chdman") + " (source: https://github.com/mamedev/mame/releases/tag/" + toolPin("chdman") + ").", Text: gpl3,
@@ -228,7 +228,7 @@ func main() {
 		Name: "7-Zip", Version: toolPin("7zip"), License: "LGPL-2.1-or-later (with the unRAR restriction)", URL: "https://www.7-zip.org", Kind: "tool",
 		Note: "Reads RAR archives. Run only as a separate program (7z.exe with 7z.dll, or 7zz); the app is not linked with it and does not change it. " +
 			"7-Zip's own license notice comes first, then the GNU Lesser General Public License version 2.1. " +
-			"Its source is at https://github.com/ip7z/7zip (the release named in the version above) and https://www.7-zip.org, " +
+			"Its source is attached to every RomCure release (https://github.com/AlanDrake/romcure/releases), and is at https://github.com/ip7z/7zip (the release named in the version above) and https://www.7-zip.org, " +
 			"and RomCure will provide it on request (see \"Source code\"). The unRAR restriction means the RAR code may not be used to build a RAR-compatible archiver; RomCure only reads archives.",
 		Text: strings.TrimSpace(read("tools/licenses/7zip-License.txt")) + "\n\n\n" + strings.TrimSpace(read("tools/licenses/LGPL-2.1.txt")),
 	})

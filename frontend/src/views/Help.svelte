@@ -125,7 +125,10 @@
       The converter programs shipped with the app (chdman from MAME{#each st.Tools ?? [] as t}{#if t.Name === 'chdman' && t.Version}, version {t.Version}{/if}{/each},
       and dolphin-tool from Dolphin) are licensed under the GNU General Public License, and 7-Zip, which reads RAR files, under the GNU Lesser General Public License.
       You are entitled to their complete corresponding source code.
-      These are the projects' own unmodified releases, and their source is published by them: MAME at
+      It is attached to every
+      <a href="https://github.com/AlanDrake/romcure/releases" target="_blank" rel="noreferrer">RomCure release</a>,
+      for the exact versions that release ships.
+      These are the projects' own unmodified releases, and their source is also published by them: MAME at
       <a href="https://github.com/mamedev/mame/releases" target="_blank" rel="noreferrer">github.com/mamedev/mame</a>,
       Dolphin at <a href="https://github.com/dolphin-emu/dolphin" target="_blank" rel="noreferrer">github.com/dolphin-emu/dolphin</a>,
       7-Zip at <a href="https://github.com/ip7z/7zip" target="_blank" rel="noreferrer">github.com/ip7z/7zip</a>

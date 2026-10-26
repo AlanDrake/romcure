@@ -760,7 +760,7 @@ the GPL source-offer mechanics.*
 | `dolphin-tool` (Dolphin) | **GPL-2.0-or-later** | Same as above |
 | `7-Zip` (RAR reading) | **LGPL-2.1+**, with the **unRAR restriction** on the RAR code (may not be used to build a RAR-compatible archiver), BSD-2/3 for small parts | Ship 7-Zip's `License.txt` with the binary (required for binary redistribution); say that RomCure only reads RAR; source is published at github.com/ip7z/7zip |
 | libretro-database serial lists (data, downloaded on request, not shipped) | **CC BY-SA 4.0** | Attribution in the notices; unmodified; share-alike only matters if we redistribute or adapt the lists, which we don't |
-| libretro-database copies of the No-Intro DATs (data, downloaded on request from GitHub, not shipped) | Repo **CC BY-SA 4.0**; the DATs are No-Intro's work | Attribution to libretro-database and No-Intro in the notices; unmodified; we fetch from libretro, never from No-Intro's site. **Open:** check No-Intro's own terms on DAT use before a public release |
+| libretro-database copies of the No-Intro DATs (data, downloaded on request from GitHub, not shipped) | Repo **CC BY-SA 4.0**; the DATs are No-Intro's work | Attribution to libretro-database and No-Intro in the notices; unmodified; we fetch from libretro, never from No-Intro's site. **Checked 2026-10-26:** neither no-intro.org nor DAT-o-MATIC publishes terms or a license for the DATs (no-intro.org only says it provides DAT files for ROM managers); libretro-database labels the repo CC BY-SA 4.0 and says its No-Intro folder is a bulk import from No-Intro, with no statement on No-Intro's permission. RomCure ships no DAT, downloads libretro's copies only when the user asks, never contacts No-Intro's sites (DAT-o-MATIC answers automated fetches with a ban page), and credits both. No published term forbids that; asking No-Intro is the only way to be sure |
 | `maxcso` | **ISC**; bundles LGPL (7-Zip/p7zip code), Apache-2.0 (Zopfli), MIT (libdeflate, libuv), BSD (lz4), zlib | Include ISC notice + each bundled library's license text; LGPL portion: provide source for that component too |
 | `bodgit/sevenzip` (Go lib, compiled into the app) | Verify in repo before M1 | If permissive (expected), notice in licenses screen |
 | Retool clone lists (if bundled) | Verify before M2 | Decide bundle vs. user-supplied based on license |
@@ -773,6 +773,13 @@ the GPL source-offer mechanics.*
       tarballs to each release instead, because upstream can move or delete tags: that
       remains the safer option if a lawyer prefers it (MAME publishes `mame0289s.exe`;
       Dolphin's tag needs its submodules). **Needs the legal review noted above.**
+      _(2026-10-26: done as well. `tools/fetch-sources.sh` gathers MAME's `mame0289s.exe` and
+      7-Zip's source archive (both SHA-256 pinned in `tools/versions.txt`) and Dolphin at the
+      tag's pinned commit with its submodules, as a tar.xz without `Externals/Qt` and
+      `Externals/FFmpeg-bin` (prebuilt Windows libraries DolphinTool does not use); the
+      release workflow attaches them to every tagged release. Run locally: 159 MB, 64 MB and
+      1.5 MB, the Dolphin archive holding the submodule sources and DolphinTool's own. The
+      tag-triggered upload has not run yet. Help, the notices and `SOURCES.txt` point to it.)_
 - [ ] **Your app's own license is not forced to GPL** by invoking these tools as
       separate executables via `os/exec` — this is generally treated as mere
       aggregation. Keep it that way: never link MAME/Dolphin code into the Go binary
@@ -783,6 +790,11 @@ the GPL source-offer mechanics.*
       `THIRD_PARTY_NOTICES` file in each installer.
 - [ ] **Trademarks:** refer to "MAME", "Dolphin", "RetroArch", "PPSSPP" nominatively
       (to say what the app works with); no logos, no implication of endorsement.
+      _(2026-10-26: the README, FAQ and app text name them only to say what RomCure works
+      with, and the README now has a Trademarks section (names belong to their owners, no
+      affiliation or endorsement). **Still open: the app icon is the Wails template's "W"
+      logo** (`build/appicon.png`, `build/windows/icon.ico`), so every build shows another
+      project's logo; RomCure needs its own icon before a public release.)_
 - [x] **Per-release check:** notices are generated from the pins (`go run ./tools/gen-notices`);
       a Go test fails if a Go module in `go.mod` has no notice or a stale version.
       The tool pins feeding the notices are not yet checked by a test.

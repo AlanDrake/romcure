@@ -8,3 +8,6 @@ chdman  mame0289  windows-amd64  archive=mame0289b_x64.exe  url=https://github.c
 chdman  mame0289  windows-arm64  archive=mame0289b_arm64.exe  url=https://github.com/mamedev/mame/releases/download/mame0289/mame0289b_arm64.exe  archive_sha256=f4cb463256c34b6772aee5bc553e770aca8204c31f1f947e849d8f8495bc6346
 dolphin  2609  windows-amd64  archive=dolphin-2609-x64.7z  url=https://dl.dolphin-emu.org/releases/2609/dolphin-2609-x64.7z  archive_sha256=1aa25785b7d4cb76259754c5fbcdd8856857b8e7bb4e523c57a8ac56665fba75
 dolphin  2609  windows-arm64  archive=dolphin-2609-arm64.7z  url=https://dl.dolphin-emu.org/releases/2609/dolphin-2609-arm64.7z  archive_sha256=76e217586746e2aca84b38375aea651745293c951afd5594fbf2d6bd7fa7605c
+chdman  mame0289  source  archive=mame0289s.exe  url=https://github.com/mamedev/mame/releases/download/mame0289/mame0289s.exe  archive_sha256=6243eac3a80df6be602bf0af7889305691737bc26c2ded1433ec11b7c6a3c7b9
+7zip    26.05  source  archive=7z2605-src.tar.xz  url=https://github.com/ip7z/7zip/releases/download/26.05/7z2605-src.tar.xz  archive_sha256=0b6080b8c3e7a579161d2d495224c0e51c467576cb4c7048b0ab485ef44cc22e
+dolphin  2609  source  git=https://github.com/dolphin-emu/dolphin.git  commit=f84df02055ab9610feec48e65648cac5a3c098fa  skip=Externals/Qt,Externals/FFmpeg-bin
