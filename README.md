@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/images/romcure-logo.svg" alt="RomCure" width="460"></p>
+
 # RomCure
 
 **Turn a big, messy ROM collection into clean, emulator-ready libraries — without

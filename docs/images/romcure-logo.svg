@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="216 325 837 182" width="837" height="182">
+  <title>RomCure</title>
+  <defs>
+    <linearGradient id="mint" x1="232" y1="340" x2="239" y2="482" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#A2EDE1"/>
+      <stop offset="1" stop-color="#49C6BF"/>
+    </linearGradient>
+    <linearGradient id="chipBody" x1="367" y1="357" x2="484" y2="476" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#A2EEE0"/>
+      <stop offset="1" stop-color="#45C1BF"/>
+    </linearGradient>
+    <linearGradient id="pins" x1="352" y1="341" x2="499" y2="491" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#66D3CA"/>
+      <stop offset="1" stop-color="#30B0AF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Letters -->
+  <g fill="none" stroke="url(#mint)" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke-width="24.5">
+      <!-- R -->
+      <path d="M244 466 V356 H291 A32.5 32.5 0 0 1 291 421 H244 M291.5 425 L321.5 466"/>
+      <!-- m -->
+      <path d="M524 466 V423 A28 28 0 0 1 580 423 V466 M580 423 A28 28 0 0 1 636 423 V466"/>
+      <!-- C -->
+      <path d="M765 372 A55 55 0 1 0 765 450"/>
+      <!-- u -->
+      <path d="M800.5 396 V434.5 A30.5 31 0 0 0 861.5 434.5 V396"/>
+    </g>
+    <!-- r -->
+    <path stroke-width="24" d="M898 466 V396 M898 434 Q898 396 932 396"/>
+    <!-- e -->
+    <path stroke-width="20.5" d="M1028.8 427.5 A36 38.5 0 1 0 993 470 C1010 470 1012 467 1021.5 460"/>
+    <path stroke-width="15.5" d="M957 431.5 H1029"/>
+  </g>
+
+  <!-- Chip (the "o") -->
+  <g id="chip">
+    <g stroke="url(#pins)" stroke-width="9" stroke-linecap="round">
+      <path d="M395 345 V357 M415 345 V357 M435.5 345 V357 M456 345 V357"/>
+      <path d="M395 476 V487 M415 476 V487 M435.5 476 V487 M456 476 V487"/>
+      <path d="M356 386 H367 M356 407 H367 M356 428 H367 M356 448 H367"/>
+      <path d="M484 386 H495 M484 407 H495 M484 428 H495 M484 448 H495"/>
+    </g>
+    <rect x="367" y="357" width="117" height="119" rx="26" fill="url(#chipBody)"/>
+    <ellipse cx="402" cy="421.5" rx="5.8" ry="7" fill="#0E5C66"/>
+    <ellipse cx="450" cy="421.5" rx="5.8" ry="7" fill="#0E5C66"/>
+    <path d="M414.5 436 Q426 451 437.5 436" fill="none" stroke="#0E5C66" stroke-width="4.5" stroke-linecap="round"/>
+    <ellipse cx="390" cy="437" rx="7.5" ry="6" fill="#FDB9C6"/>
+    <ellipse cx="461" cy="437" rx="7.5" ry="6" fill="#FDB9C6"/>
+  </g>
+</svg>

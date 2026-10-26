@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="346 335 159 162" width="159" height="162">
+  <title>RomCure chip</title>
+  <defs>
+    <linearGradient id="chipBody" x1="367" y1="357" x2="484" y2="476" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#A2EEE0"/>
+      <stop offset="1" stop-color="#45C1BF"/>
+    </linearGradient>
+    <linearGradient id="pins" x1="352" y1="341" x2="499" y2="491" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#66D3CA"/>
+      <stop offset="1" stop-color="#30B0AF"/>
+    </linearGradient>
+  </defs>
+  <g id="chip">
+    <g stroke="url(#pins)" stroke-width="9" stroke-linecap="round">
+      <path d="M395 345 V357 M415 345 V357 M435.5 345 V357 M456 345 V357"/>
+      <path d="M395 476 V487 M415 476 V487 M435.5 476 V487 M456 476 V487"/>
+      <path d="M356 386 H367 M356 407 H367 M356 428 H367 M356 448 H367"/>
+      <path d="M484 386 H495 M484 407 H495 M484 428 H495 M484 448 H495"/>
+    </g>
+    <rect x="367" y="357" width="117" height="119" rx="26" fill="url(#chipBody)"/>
+    <ellipse cx="402" cy="421.5" rx="5.8" ry="7" fill="#0E5C66"/>
+    <ellipse cx="450" cy="421.5" rx="5.8" ry="7" fill="#0E5C66"/>
+    <path d="M414.5 436 Q426 451 437.5 436" fill="none" stroke="#0E5C66" stroke-width="4.5" stroke-linecap="round"/>
+    <ellipse cx="390" cy="437" rx="7.5" ry="6" fill="#FDB9C6"/>
+    <ellipse cx="461" cy="437" rx="7.5" ry="6" fill="#FDB9C6"/>
+  </g>
+</svg>

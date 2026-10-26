@@ -185,8 +185,8 @@ The owner's review of 2026-10-25 added milestones M7–M11 to the spec.
 5. M10: arcade (FBNeo, MAME). Builds on M9.
 6. A first public release (the owner's next goal). Done 2026-10-26: tool
    sources attached to releases, No-Intro's terms looked up, Trademarks section
-   in the README. Open: **RomCure's own app icon** (it is still the Wails
-   template's "W" logo); the owner runs the packaged build on a clean PC and
+   in the README. RomCure's own icon and logo replace the Wails
+   template's. Open: the owner runs the packaged build on a clean PC and
    makes the repo public (CI then runs again); the macOS archive is to be
    dropped from releases until it can be signed (owner to confirm). Signing
    needs the owner's certificates (spec M6).

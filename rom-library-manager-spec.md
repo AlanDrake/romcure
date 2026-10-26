@@ -788,13 +788,15 @@ the GPL source-offer mechanics.*
 - [x] **Attribution:** in-app Third-Party Licenses screen listing every bundled
       component, version, license, full license text, and source link; also a
       `THIRD_PARTY_NOTICES` file in each installer.
-- [ ] **Trademarks:** refer to "MAME", "Dolphin", "RetroArch", "PPSSPP" nominatively
+- [x] **Trademarks:** refer to "MAME", "Dolphin", "RetroArch", "PPSSPP" nominatively
       (to say what the app works with); no logos, no implication of endorsement.
       _(2026-10-26: the README, FAQ and app text name them only to say what RomCure works
       with, and the README now has a Trademarks section (names belong to their owners, no
-      affiliation or endorsement). **Still open: the app icon is the Wails template's "W"
-      logo** (`build/appicon.png`, `build/windows/icon.ico`), so every build shows another
-      project's logo; RomCure needs its own icon before a public release.)_
+      affiliation or endorsement). The app icon was the Wails template's "W" logo; it is now RomCure's own chip
+      (`build/appicon.svg`, rendered to `appicon.png`, `.ico` and `.icns`; the README shows
+      `docs/images/romcure-logo.svg`). The template's Wails-branded DMG images are replaced
+      too. `build/darwin/Assets.car` still holds the old icon until a macOS build
+      regenerates it.)_
 - [x] **Per-release check:** notices are generated from the pins (`go run ./tools/gen-notices`);
       a Go test fails if a Go module in `go.mod` has no notice or a stale version.
       The tool pins feeding the notices are not yet checked by a test.

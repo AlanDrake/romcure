@@ -6,22 +6,8 @@
     {
       "layers" : [
         {
-          "fill-specializations" : [
-            {
-              "appearance" : "dark",
-              "value" : {
-                "solid" : "srgb:0.92143,0.92145,0.92144,1.00000"
-              }
-            },
-            {
-              "appearance" : "tinted",
-              "value" : {
-                "solid" : "srgb:0.83742,0.83744,0.83743,1.00000"
-              }
-            }
-          ],
-          "image-name" : "wails_icon_vector.svg",
-          "name" : "wails_icon_vector",
+          "image-name" : "romcure_chip.svg",
+          "name" : "romcure_chip",
           "position" : {
             "scale" : 0.85,
             "translation-in-points" : [
