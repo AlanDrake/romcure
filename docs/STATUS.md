@@ -12,7 +12,12 @@ checklists with what is verified. Past work is in the git history.
 Milestones M0–M5 are done and M6 is done except signing (see the spec
 checklists for the verification level of each item). CI (vet, tests, Wails
 build, smoke test on Windows/macOS/Linux, Playwright e2e on Linux) is green on `521df59` (2026-10-26); the Linux
-runner is pinned to ubuntu-24.04 (26.04 broke the pinned Playwright). Push
+runner is pinned to ubuntu-24.04 (26.04 broke the pinned Playwright).
+Since then: Wails v3.0.0 (was beta.30; v3.0.0 fixes its security advisories)
+and Go 1.27.3 (crypto/x509 fix), checked locally: vet, all tests, cross-OS
+vet, 28 e2e, a real window run, a packaged build. Linux still builds with
+`-tags gtk3`; Wails 3.0 defaults to GTK4 and keeps GTK3 only until 3.1, so
+the move to GTK4 / WebKitGTK 6.0 is due before upgrading to Wails 3.1. Push
 only when needed (CLAUDE.md).
 
 - **App:** Go core (`internal/*`), orchestration in `internal/app`, a thin

@@ -10,11 +10,11 @@
         <key>CFBundleIdentifier</key>
             <string>dev.romcure.app</string>
         <key>CFBundleVersion</key>
-            <string>0.1.0</string>
+            <string>0.1.1</string>
         <key>CFBundleGetInfoString</key>
-            <string>This is a comment</string>
+            <string>Free software under the GNU GPL v3: https://github.com/AlanDrake/romcure</string>
         <key>CFBundleShortVersionString</key>
-            <string>0.1.0</string>
+            <string>0.1.1</string>
         <key>CFBundleIconFile</key>
             <string>icons</string>
         <key>CFBundleIconName</key>
@@ -24,7 +24,7 @@
         <key>NSHighResolutionCapable</key>
             <string>true</string>
         <key>NSHumanReadableCopyright</key>
-            <string>© 2026, My Company</string>
+            <string>© 2026 RomCure contributors</string>
         <key>NSAppTransportSecurity</key>
         <dict>
             <key>NSAllowsLocalNetworking</key>
