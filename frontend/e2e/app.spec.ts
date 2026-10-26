@@ -448,7 +448,9 @@ test('the Help tab lists third-party licenses with their text, and the source of
   await page.getByRole('button', {name: /Show all \d+ libraries/}).click();
   await expect(page.locator('ul.licenses li', {hasText: 'modernc.org/sqlite'})).toContainText('BSD-3-Clause');
   await expect(page.getByRole('heading', {name: 'Source code'})).toBeVisible();
-  await expect(page.getByText('own unmodified releases, and their source is published by them')).toBeVisible();
+  await expect(page.getByText('own unmodified releases, and their source is also published by them')).toBeVisible();
+  // The source of the exact versions shipped is attached to every release.
+  await expect(page.getByRole('link', {name: 'RomCure release'})).toHaveAttribute('href', 'https://github.com/AlanDrake/romcure/releases');
   await page.screenshot({path: 'test-results/licenses.png', fullPage: true});
 });
 
