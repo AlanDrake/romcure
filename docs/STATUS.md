@@ -5,14 +5,15 @@ session. `HANDOFF.md` holds the stable decisions and working rules; the spec
 (`rom-library-manager-spec.md`) holds requirements and per-milestone
 checklists with what is verified. Past work is in the git history.
 
-**Last updated:** 2026-10-25
+**Last updated:** 2026-10-26
 
 ## Where things are
 
 Milestones M0–M5 are done and M6 is done except signing (see the spec
 checklists for the verification level of each item). CI (vet, tests, Wails
-build, smoke test on Windows/macOS/Linux, Playwright e2e on Linux) is green;
-push only when needed (CLAUDE.md).
+build, smoke test on Windows/macOS/Linux, Playwright e2e on Linux) is green on `521df59` (2026-10-26); the Linux
+runner is pinned to ubuntu-24.04 (26.04 broke the pinned Playwright). Push
+only when needed (CLAUDE.md).
 
 - **App:** Go core (`internal/*`), orchestration in `internal/app`, a thin
   Wails service in `cmd/romcure/service.go`, Svelte UI with Library, Games,
