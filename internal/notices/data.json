@@ -190,7 +190,7 @@
  },
  {
   "Name": "github.com/wailsapp/wails/v3",
-  "Version": "v3.0.0-beta.30",
+  "Version": "v3.0.0",
   "License": "MIT",
   "URL": "https://github.com/wailsapp/wails/v3",
   "Kind": "go",
@@ -217,7 +217,7 @@
  },
  {
   "Name": "golang.org/x/text",
-  "Version": "v0.40.0",
+  "Version": "v0.42.0",
   "License": "BSD-3-Clause",
   "URL": "https://pkg.go.dev/golang.org/x/text",
   "Kind": "go",

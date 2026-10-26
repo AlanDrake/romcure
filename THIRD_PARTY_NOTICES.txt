@@ -2077,7 +2077,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 github.com/wailsapp/wails/v3
 ----------------------------
-Version: v3.0.0-beta.30
+Version: v3.0.0
 License: MIT
 Website: https://github.com/wailsapp/wails/v3
 
@@ -2350,7 +2350,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 golang.org/x/text
 -----------------
-Version: v0.40.0
+Version: v0.42.0
 License: BSD-3-Clause
 Website: https://pkg.go.dev/golang.org/x/text
 
